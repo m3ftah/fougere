@@ -13,6 +13,7 @@ import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.net.wifi.p2p.WifiP2pManager.Channel;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.util.Log;
 
 import java.io.IOException;
@@ -37,6 +38,8 @@ public class ConnectionHandler {
     private final FougereActionListener removeGroupActionListener;
     private final Handler handler;
     private final Runnable timeout;
+    private final Runnable passive;
+    private Runnable active;
 
     private enum ConnectionState {
         DISCONNECTED,
@@ -51,10 +54,11 @@ public class ConnectionHandler {
         this.manager = manager;
         this.channel = channel;
 
-        Passive passive = new Passive();
-        passive.start();
+        this.passive = new Passive();
 
-        this.handler = new Handler();
+        HandlerThread handlerThread = new HandlerThread("HandlerThread");
+        handlerThread.start();
+        this.handler = new Handler(handlerThread.getLooper());
 
         this.timeout = new Runnable() {
             @Override
@@ -115,11 +119,15 @@ public class ConnectionHandler {
         Log.d(Fougere.TAG, "[ConnectionHandler] Call disconnect");
 
         this.handler.removeCallbacks(this.timeout);
+        this.handler.removeCallbacks(this.passive);
+        this.handler.removeCallbacks(this.active);
 
         this.manager.cancelConnect(this.channel, this.cancelConnectActionListener);
         this.manager.removeGroup(this.channel, this.removeGroupActionListener);
 
         this.state = ConnectionState.DISCONNECTED;
+
+
     }
 
     private class ConnectionReceiver extends BroadcastReceiver {
@@ -138,9 +146,11 @@ public class ConnectionHandler {
                 if (networkInfo.isConnected()) {
                     Log.d(Fougere.TAG, "[ConnectionHandler] Devices connected");
 
-                    if ( ! wiFiP2pInfo.isGroupOwner) {
-                        Active active = new Active(wiFiP2pInfo.groupOwnerAddress);
-                        active.start();
+                    if (wiFiP2pInfo.isGroupOwner) {
+                        ConnectionHandler.this.handler.post(ConnectionHandler.this.passive);
+                    } else {
+                        ConnectionHandler.this.active = new Active(wiFiP2pInfo.groupOwnerAddress);
+                        ConnectionHandler.this.handler.post(ConnectionHandler.this.active);
                     }
                 }
             }

@@ -3,6 +3,9 @@ package fr.inria.rsommerard.fougere.wifidirect;
 import android.util.Log;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -11,43 +14,116 @@ import fr.inria.rsommerard.fougere.Fougere;
 /**
  * Created by Romain on 10/08/16.
  */
-public class Passive extends Thread implements Runnable {
+public class Passive implements Runnable {
 
     private ServerSocket serverSocket;
+    private Socket socket;
+    private ObjectInputStream input;
+    private ObjectOutputStream output;
 
     @Override
     public void run() {
-        try {
-            this.serverSocket = new ServerSocket(54412);
-        } catch (IOException e) {
-            e.printStackTrace();
-            Log.e(Fougere.TAG, "[ConnectionServer] Error on ServerSocket initialization");
+        Log.d(Fougere.TAG, "[Passive] Started");
+
+        this.initializeServerSocket();
+
+        if (this.serverSocket == null) {
+            return;
         }
 
-        while (this.checkThreadStatus()) {
-            try {
-                Socket socket = this.serverSocket.accept();
-                Log.d(Fougere.TAG, "[ConnectionServer] Socket OK");
-                socket.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-                Log.e(Fougere.TAG, "[ConnectionServer] Socket KO");
-            }
+        try {
+            this.socket = this.serverSocket.accept();
+            this.initializeStreams();
+            this.process();
+        } catch (IOException | ClassNotFoundException e) {
+            Log.e(Fougere.TAG, "[Passive] KO");
+        } finally {
+            this.release();
         }
     }
 
-    private boolean checkThreadStatus() {
-        if (Thread.currentThread().isInterrupted()) {
-            try {
-                this.serverSocket.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-                return false;
-            }
+    private void initializeStreams() throws IOException {
+        this.input = new ObjectInputStream(this.socket.getInputStream());
+        this.output = new ObjectOutputStream(this.socket.getOutputStream());
+    }
 
-            return false;
+    private void process() throws IOException, ClassNotFoundException {
+        Log.d(Fougere.TAG, "[Passive] Socket OK");
+
+        if ( ! Protocol.HELLO.equals(this.receive())) {
+            return;
         }
 
-        return true;
+        this.send(Protocol.HELLO);
+
+        if ( ! Protocol.ACK.equals(this.receive())) {
+            return;
+        }
+
+        Log.d(Fougere.TAG, "[Passive] Process done");
+    }
+
+    private void send(final String msg) throws IOException {
+        this.output.writeObject(msg);
+        this.output.flush();
+
+        Log.d(Fougere.TAG, "[Passive] Sent: " + msg);
+    }
+
+    private String receive() throws IOException, ClassNotFoundException {
+        String received = (String) this.input.readObject();
+
+        Log.d(Fougere.TAG, "[Passive] Received: " + received);
+
+        return received;
+    }
+
+    private void initializeServerSocket() {
+        try {
+            this.serverSocket = new ServerSocket(54412);
+        } catch (IOException e) {
+            Log.e(Fougere.TAG, "[Passive] Error on ServerSocket initialization");
+        }
+    }
+
+    private void release() {
+        Log.d(Fougere.TAG, "[Passive] Release resources");
+
+        this.closeInputStream();
+        this.closeOutputStream();
+        this.closeSocket();
+        this.closeServerSocket();
+    }
+
+    private void closeInputStream() {
+        try {
+            this.input.close();
+        } catch (IOException e) {
+            // Nothing
+        }
+    }
+
+    private void closeOutputStream() {
+        try {
+            this.output.close();
+        } catch (IOException e) {
+            // Nothing
+        }
+    }
+
+    private void closeSocket() {
+        try {
+            this.socket.close();
+        } catch (IOException e) {
+            // Nothing
+        }
+    }
+
+    private void closeServerSocket() {
+        try {
+            this.serverSocket.close();
+        } catch (IOException e) {
+            // Nothing
+        }
     }
 }
