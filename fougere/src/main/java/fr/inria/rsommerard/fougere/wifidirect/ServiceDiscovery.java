@@ -6,9 +6,14 @@ import android.net.wifi.p2p.WifiP2pManager.Channel;
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceInfo;
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceRequest;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.util.Log;
 
 import java.util.Map;
+import java.util.Random;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import fr.inria.rsommerard.fougere.Fougere;
 
@@ -21,8 +26,8 @@ public class ServiceDiscovery {
     private static final String SERVICE_TYPE = "_tcp";
 
     private static final int DISCOVERY_INTERVAL = 17000;
-    private final Handler handler;
     private final ConnectionHandler connectionHandler;
+    private final ScheduledExecutorService executor;
 
     private WifiP2pDnsSdServiceInfo wiFiP2pDnsSdServiceInfo;
     private FougereActionListener addLocalServiceActionListener;
@@ -46,7 +51,7 @@ public class ServiceDiscovery {
 
         this.connectionHandler = connectionHandler;
 
-        this.handler = new Handler();
+        this.executor = Executors.newSingleThreadScheduledExecutor();
 
         this.discover = new Runnable() {
             @Override
@@ -107,17 +112,15 @@ public class ServiceDiscovery {
         this.manager.addServiceRequest(this.channel, this.wiFiP2pDnsSdServiceRequest,
                 this.addServiceRequestActionListener);
 
-        this.handler.postDelayed(this.discover, DISCOVERY_INTERVAL);
+        this.executor.scheduleAtFixedRate(this.discover, DISCOVERY_INTERVAL, DISCOVERY_INTERVAL,
+                TimeUnit.MILLISECONDS);
     }
 
     private void discover() {
         this.manager.discoverServices(this.channel, this.discoverServicesActionListener);
-        this.handler.postDelayed(this.discover, DISCOVERY_INTERVAL);
     }
 
     private void stopDiscovery() {
-        this.handler.removeCallbacks(this.discover);
-
         // https://developer.android.com/reference/android/net/wifi/p2p/WifiP2pManager.html
         this.manager.clearLocalServices(this.channel, this.clearLocalServicesActionListener);
         this.manager.clearServiceRequests(this.channel, this.clearServiceRequestsActionListener);
@@ -145,10 +148,12 @@ public class ServiceDiscovery {
 
         private final String serviceName;
         private final String serviceType;
+        private final Random rand;
 
         public FougereDnsSdTxtRecordListener(final String serviceName, final String serviceType) {
             this.serviceName = serviceName;
             this.serviceType = serviceType;
+            this.rand = new Random();
         }
 
         @Override
@@ -161,7 +166,9 @@ public class ServiceDiscovery {
                         " discovered");
 
                 if (srcDevice.status == WifiP2pDevice.AVAILABLE) {
-                    ServiceDiscovery.this.connectionHandler.connect(srcDevice);
+                    if (this.rand.nextBoolean()) {
+                        ServiceDiscovery.this.connectionHandler.connect(srcDevice);
+                    }
                 }
             } else {
                 Log.d(Fougere.TAG, "[FougereDnsSdTxtRecordListener] DnsSdTxtRecord not valid");

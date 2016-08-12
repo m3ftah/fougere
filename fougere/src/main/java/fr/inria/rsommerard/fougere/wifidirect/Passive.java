@@ -25,7 +25,11 @@ public class Passive implements Runnable {
     public void run() {
         Log.d(Fougere.TAG, "[Passive] Started");
 
-        this.initializeServerSocket();
+        try {
+            this.serverSocket = new ServerSocket(54412);
+        } catch (IOException e) {
+            Log.e(Fougere.TAG, "[Passive] Error on ServerSocket initialization");
+        }
 
         if (this.serverSocket == null) {
             return;
@@ -33,7 +37,10 @@ public class Passive implements Runnable {
 
         try {
             this.socket = this.serverSocket.accept();
-            this.initializeStreams();
+            // Warning: Order is important! First create output for the header!
+            this.output = new ObjectOutputStream(this.socket.getOutputStream());
+            this.input = new ObjectInputStream(this.socket.getInputStream());
+            Log.d(Fougere.TAG, "[Passive] Socket OK");
             this.process();
         } catch (IOException | ClassNotFoundException e) {
             Log.e(Fougere.TAG, "[Passive] KO");
@@ -42,14 +49,7 @@ public class Passive implements Runnable {
         }
     }
 
-    private void initializeStreams() throws IOException {
-        this.input = new ObjectInputStream(this.socket.getInputStream());
-        this.output = new ObjectOutputStream(this.socket.getOutputStream());
-    }
-
     private void process() throws IOException, ClassNotFoundException {
-        Log.d(Fougere.TAG, "[Passive] Socket OK");
-
         if ( ! Protocol.HELLO.equals(this.receive())) {
             return;
         }
@@ -76,14 +76,6 @@ public class Passive implements Runnable {
         Log.d(Fougere.TAG, "[Passive] Received: " + received);
 
         return received;
-    }
-
-    private void initializeServerSocket() {
-        try {
-            this.serverSocket = new ServerSocket(54412);
-        } catch (IOException e) {
-            Log.e(Fougere.TAG, "[Passive] Error on ServerSocket initialization");
-        }
     }
 
     private void release() {

@@ -16,7 +16,8 @@ import fr.inria.rsommerard.fougere.Fougere;
  */
 public class Active implements Runnable {
 
-    private static final int SOCKET_TIMEOUT = 3000;
+    private static final int SOCKET_TIMEOUT = 7000;
+    private static final int NB_ATTEMPTS = 5;
 
     private final InetAddress groupOwnerAddress;
     private Socket socket;
@@ -32,21 +33,30 @@ public class Active implements Runnable {
     public void run() {
         Log.d(Fougere.TAG, "[Active] Started");
 
-        this.socket = new Socket();
+        while ( this.socket == null || ! this.socket.isConnected()) {
+            // Warning: This is important to recreate a fresh object after a connect attempt!
+            this.socket = new Socket();
 
-        while ( ! this.socket.isConnected()) {
-            this.waitAMoment();
-            this.connect();
+            try {
+                this.socket.connect(new InetSocketAddress(this.groupOwnerAddress, 54412), SOCKET_TIMEOUT);
+                // Warning: Order is important! First create output for the header!
+                this.output = new ObjectOutputStream(this.socket.getOutputStream());
+                this.input = new ObjectInputStream(this.socket.getInputStream());
+            } catch (IOException e) {
+                this.failCounter++;
+                Log.e(Fougere.TAG, "[Active] failCounter: " + this.failCounter);
+            }
 
-            if (failCounter >= 3) {
+            if (this.failCounter >= NB_ATTEMPTS) {
                 Log.e(Fougere.TAG, "[Active] Cannot open socket with the groupOwner after " +
                         this.failCounter + " attempts");
                 return;
             }
         }
 
+        Log.d(Fougere.TAG, "[Active] OK");
+
         try {
-            this.initializeStreams();
             this.process();
         } catch (IOException | ClassNotFoundException e) {
             Log.e(Fougere.TAG, "[Active] KO");
@@ -55,12 +65,20 @@ public class Active implements Runnable {
         }
     }
 
-    private void waitAMoment() {
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+    private void process() throws IOException, ClassNotFoundException {
+        this.send(Protocol.HELLO);
+
+        if ( ! Protocol.ACK.equals(this.receive())) {
+            return;
         }
+
+        if ( ! Protocol.HELLO.equals(this.receive())) {
+            return;
+        }
+
+        this.send(Protocol.ACK);
+
+        Log.d(Fougere.TAG, "[Active] Process done");
     }
 
     private void release() {
@@ -95,29 +113,6 @@ public class Active implements Runnable {
         }
     }
 
-    private void initializeStreams() throws IOException {
-        this.input = new ObjectInputStream(this.socket.getInputStream());
-        this.output = new ObjectOutputStream(this.socket.getOutputStream());
-    }
-
-    private void process() throws IOException, ClassNotFoundException {
-        Log.d(Fougere.TAG, "[Active] Socket opened with the groupOwner");
-
-        this.send(Protocol.HELLO);
-
-        if ( ! Protocol.ACK.equals(this.receive())) {
-            return;
-        }
-
-        if ( ! Protocol.HELLO.equals(this.receive())) {
-            return;
-        }
-
-        this.send(Protocol.ACK);
-
-        Log.d(Fougere.TAG, "[Active] Process done");
-    }
-
     private void send(final String msg) throws IOException, ClassNotFoundException {
         this.output.writeObject(msg);
         this.output.flush();
@@ -131,14 +126,5 @@ public class Active implements Runnable {
         Log.d(Fougere.TAG, "[Active] Received: " + received);
 
         return received;
-    }
-
-    private void connect() {
-        try {
-            this.socket.connect(new InetSocketAddress(this.groupOwnerAddress, 54412), SOCKET_TIMEOUT);
-        } catch (IOException e) {
-            this.failCounter++;
-            Log.e(Fougere.TAG, "[Active] failCounter: " + this.failCounter);
-        }
     }
 }

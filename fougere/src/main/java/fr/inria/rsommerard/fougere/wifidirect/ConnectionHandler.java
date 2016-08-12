@@ -31,6 +31,7 @@ import fr.inria.rsommerard.fougere.Fougere;
 public class ConnectionHandler {
 
     private static final int CONNECTION_TIMEOUT = 60000;
+    private static final int DELAY = 3000;
 
     private final WifiP2pManager manager;
     private final Channel channel;
@@ -39,6 +40,7 @@ public class ConnectionHandler {
     private final Handler handler;
     private final Runnable timeout;
     private final Runnable passive;
+    private final ScheduledExecutorService executor;
     private Runnable active;
 
     private enum ConnectionState {
@@ -56,7 +58,7 @@ public class ConnectionHandler {
 
         this.passive = new Passive();
 
-        HandlerThread handlerThread = new HandlerThread("HandlerThread");
+        HandlerThread handlerThread = new HandlerThread("ConnectionHandlerThread");
         handlerThread.start();
         this.handler = new Handler(handlerThread.getLooper());
 
@@ -83,6 +85,8 @@ public class ConnectionHandler {
 
         this.manager.cancelConnect(this.channel, this.cancelConnectActionListener);
         this.manager.removeGroup(this.channel, this.removeGroupActionListener);
+
+        this.executor = Executors.newSingleThreadScheduledExecutor();
     }
 
     public void connect(final WifiP2pDevice device) {
@@ -96,7 +100,7 @@ public class ConnectionHandler {
 
         this.state = ConnectionState.CONNECTING;
 
-        this.handler.postDelayed(this.timeout, CONNECTION_TIMEOUT);
+        this.executor.schedule(this.timeout, CONNECTION_TIMEOUT, TimeUnit.MILLISECONDS);
 
         WifiP2pConfig wifiP2pConfig = new WifiP2pConfig();
         wifiP2pConfig.deviceAddress = device.deviceAddress;
@@ -118,7 +122,6 @@ public class ConnectionHandler {
     private void disconnect() {
         Log.d(Fougere.TAG, "[ConnectionHandler] Call disconnect");
 
-        this.handler.removeCallbacks(this.timeout);
         this.handler.removeCallbacks(this.passive);
         this.handler.removeCallbacks(this.active);
 
@@ -126,8 +129,6 @@ public class ConnectionHandler {
         this.manager.removeGroup(this.channel, this.removeGroupActionListener);
 
         this.state = ConnectionState.DISCONNECTED;
-
-
     }
 
     private class ConnectionReceiver extends BroadcastReceiver {
@@ -150,9 +151,14 @@ public class ConnectionHandler {
                         ConnectionHandler.this.handler.post(ConnectionHandler.this.passive);
                     } else {
                         ConnectionHandler.this.active = new Active(wiFiP2pInfo.groupOwnerAddress);
-                        ConnectionHandler.this.handler.post(ConnectionHandler.this.active);
+                        ConnectionHandler.this.handler.postDelayed(ConnectionHandler.this.active,
+                                DELAY);
                     }
-                }
+                } /*else {
+                    if (NetworkInfo.DetailedState.FAILED.equals(networkInfo.getDetailedState())) {
+                        ConnectionHandler.this.disconnect();
+                    }
+                }*/
             }
         }
     }
