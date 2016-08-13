@@ -25,7 +25,8 @@ public class ServiceDiscovery {
     private static final String SERVICE_NAME = "_fougere";
     private static final String SERVICE_TYPE = "_tcp";
 
-    private static final int DISCOVERY_INTERVAL = 17000;
+    private static final int DISCOVERY_INTERVAL = 180000; //17000;
+    private static final int DELAY = 11000;
     private final ConnectionHandler connectionHandler;
     private final ScheduledExecutorService executor;
 
@@ -112,7 +113,7 @@ public class ServiceDiscovery {
         this.manager.addServiceRequest(this.channel, this.wiFiP2pDnsSdServiceRequest,
                 this.addServiceRequestActionListener);
 
-        this.executor.scheduleAtFixedRate(this.discover, DISCOVERY_INTERVAL, DISCOVERY_INTERVAL,
+        this.executor.scheduleAtFixedRate(this.discover, DELAY, DISCOVERY_INTERVAL,
                 TimeUnit.MILLISECONDS);
     }
 
@@ -148,12 +149,10 @@ public class ServiceDiscovery {
 
         private final String serviceName;
         private final String serviceType;
-        private final Random rand;
 
         public FougereDnsSdTxtRecordListener(final String serviceName, final String serviceType) {
             this.serviceName = serviceName;
             this.serviceType = serviceType;
-            this.rand = new Random();
         }
 
         @Override
@@ -166,9 +165,7 @@ public class ServiceDiscovery {
                         " discovered");
 
                 if (srcDevice.status == WifiP2pDevice.AVAILABLE) {
-                    if (this.rand.nextBoolean()) {
-                        ServiceDiscovery.this.connectionHandler.connect(srcDevice);
-                    }
+                    ServiceDiscovery.this.connectionHandler.connect(srcDevice);
                 }
             } else {
                 Log.d(Fougere.TAG, "[FougereDnsSdTxtRecordListener] DnsSdTxtRecord not valid");

@@ -42,11 +42,15 @@ public class WiFiDirect {
     public void start() {
         this.cleanAllGroupsRegistered();
 
+        this.connectionHandler.start();
+
         this.serviceDiscovery.start();
     }
 
     public void stop() {
         this.serviceDiscovery.stop();
+
+        this.connectionHandler.stop();
     }
 
     private void cleanAllGroupsRegistered() {

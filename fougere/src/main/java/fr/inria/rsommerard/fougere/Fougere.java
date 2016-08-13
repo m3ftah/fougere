@@ -31,8 +31,6 @@ public class Fougere {
         WifiManager manager = (WifiManager) activity.getSystemService(Context.WIFI_SERVICE);
         if (manager.isWifiEnabled()) {
             this.wiFiDirect.start();
-        } else {
-            this.wiFiDirect.stop();
         }
     }
 

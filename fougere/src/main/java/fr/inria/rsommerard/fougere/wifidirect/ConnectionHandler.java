@@ -40,7 +40,10 @@ public class ConnectionHandler {
     private final Handler handler;
     private final Runnable timeout;
     private final Runnable passive;
-    private final ScheduledExecutorService executor;
+    private ScheduledExecutorService executor;
+    private final Context activity;
+    private final IntentFilter intentFilter;
+    private final ConnectionReceiver connectionReceiver;
     private Runnable active;
 
     private enum ConnectionState {
@@ -55,6 +58,8 @@ public class ConnectionHandler {
                              final Channel channel) {
         this.manager = manager;
         this.channel = channel;
+
+        this.activity = activity;
 
         this.passive = new Passive();
 
@@ -77,16 +82,10 @@ public class ConnectionHandler {
         this.removeGroupActionListener =
                 new FougereActionListener("Remove group succeeded", "Remove group failed: ");
 
-        ConnectionReceiver connectionReceiver = new ConnectionReceiver();
+        this.connectionReceiver = new ConnectionReceiver();
 
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
-        activity.registerReceiver(connectionReceiver, intentFilter);
-
-        this.manager.cancelConnect(this.channel, this.cancelConnectActionListener);
-        this.manager.removeGroup(this.channel, this.removeGroupActionListener);
-
-        this.executor = Executors.newSingleThreadScheduledExecutor();
+        this.intentFilter = new IntentFilter();
+        this.intentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
     }
 
     public void connect(final WifiP2pDevice device) {
@@ -129,6 +128,25 @@ public class ConnectionHandler {
         this.manager.removeGroup(this.channel, this.removeGroupActionListener);
 
         this.state = ConnectionState.DISCONNECTED;
+    }
+
+    public void start() {
+        this.manager.cancelConnect(this.channel, this.cancelConnectActionListener);
+        this.manager.removeGroup(this.channel, this.removeGroupActionListener);
+
+        this.activity.registerReceiver(this.connectionReceiver, this.intentFilter);
+
+        this.executor = Executors.newSingleThreadScheduledExecutor();
+    }
+
+    public void stop() {
+        this.disconnect();
+
+        if (this.executor != null) {
+            this.executor.shutdown();
+        }
+
+        this.activity.unregisterReceiver(this.connectionReceiver);
     }
 
     private class ConnectionReceiver extends BroadcastReceiver {
