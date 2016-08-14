@@ -8,8 +8,12 @@ import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.UUID;
 
 import fr.inria.rsommerard.fougere.Fougere;
+import fr.inria.rsommerard.fougere.data.Data;
 
 /**
  * Created by Romain on 10/08/16.
@@ -59,6 +63,7 @@ public class Active implements Runnable {
         try {
             this.process();
         } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
             Log.e(Fougere.TAG, "[Active] KO");
         } finally {
             this.release();
@@ -68,13 +73,29 @@ public class Active implements Runnable {
     private void process() throws IOException, ClassNotFoundException {
         this.send(Protocol.HELLO);
 
-        if ( ! Protocol.ACK.equals(this.receive())) {
+        if ( ! Protocol.HELLO.equals(this.receive())) {
+            Log.e(Fougere.TAG, "[Active] " + Protocol.HELLO + " not received");
             return;
         }
 
-        if ( ! Protocol.HELLO.equals(this.receive())) {
+        if ( ! Protocol.SEND.equals(this.receive())) {
+            Log.e(Fougere.TAG, "[Active] " + Protocol.SEND + " not received");
             return;
         }
+
+        ArrayList<Data> data = new ArrayList<>();
+        data.add(new Data(UUID.randomUUID().toString(), "This is a data! #Lol"));
+
+        this.send(Data.gsonify(data));
+
+        if ( ! Protocol.ACK.equals(this.receive())) {
+            Log.e(Fougere.TAG, "[Active] " + Protocol.ACK + " not received");
+            return;
+        }
+
+        this.send(Protocol.SEND);
+
+        String json = receive();
 
         this.send(Protocol.ACK);
 
@@ -113,18 +134,21 @@ public class Active implements Runnable {
         }
     }
 
-    private void send(final String msg) throws IOException, ClassNotFoundException {
+    private void send(final String content) throws IOException {
+        Message msg = new Message(content);
+
         this.output.writeObject(msg);
         this.output.flush();
 
-        Log.d(Fougere.TAG, "[Active] Sent: " + msg);
+        Log.d(Fougere.TAG, "[Active] Sent: " + content);
     }
 
     private String receive() throws IOException, ClassNotFoundException {
-        String received = (String) this.input.readObject();
+        Message received = (Message) this.input.readObject();
 
-        Log.d(Fougere.TAG, "[Active] Received: " + received);
+        String content = received.getContent();
+        Log.d(Fougere.TAG, "[Active] Received: " + content);
 
-        return received;
+        return content;
     }
 }

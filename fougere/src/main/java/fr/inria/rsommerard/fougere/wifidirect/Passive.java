@@ -8,8 +8,12 @@ import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.UUID;
 
 import fr.inria.rsommerard.fougere.Fougere;
+import fr.inria.rsommerard.fougere.data.Data;
 
 /**
  * Created by Romain on 10/08/16.
@@ -43,6 +47,7 @@ public class Passive implements Runnable {
             Log.d(Fougere.TAG, "[Passive] Socket OK");
             this.process();
         } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
             Log.e(Fougere.TAG, "[Passive] KO");
         } finally {
             this.release();
@@ -51,31 +56,52 @@ public class Passive implements Runnable {
 
     private void process() throws IOException, ClassNotFoundException {
         if ( ! Protocol.HELLO.equals(this.receive())) {
+            Log.e(Fougere.TAG, "[Passive] " + Protocol.HELLO + " not received");
             return;
         }
 
         this.send(Protocol.HELLO);
 
+        this.send(Protocol.SEND);
+
+        String json = this.receive();
+
+        this.send(Protocol.ACK);
+
+        if ( ! Protocol.SEND.equals(this.receive())) {
+            Log.e(Fougere.TAG, "[Passive] " + Protocol.SEND + " not received");
+            return;
+        }
+
+        ArrayList<Data> data = new ArrayList<>();
+        data.add(new Data(UUID.randomUUID().toString(), "This is an other data! #Lol"));
+
+        this.send(Data.gsonify(data));
+
         if ( ! Protocol.ACK.equals(this.receive())) {
+            Log.e(Fougere.TAG, "[Passive] " + Protocol.ACK + " not received");
             return;
         }
 
         Log.d(Fougere.TAG, "[Passive] Process done");
     }
 
-    private void send(final String msg) throws IOException {
+    private void send(final String content) throws IOException {
+        Message msg = new Message(content);
+
         this.output.writeObject(msg);
         this.output.flush();
 
-        Log.d(Fougere.TAG, "[Passive] Sent: " + msg);
+        Log.d(Fougere.TAG, "[Passive] Sent: " + content);
     }
 
     private String receive() throws IOException, ClassNotFoundException {
-        String received = (String) this.input.readObject();
+        Message received = (Message) this.input.readObject();
 
-        Log.d(Fougere.TAG, "[Passive] Received: " + received);
+        String content = received.getContent();
+        Log.d(Fougere.TAG, "[Passive] Received: " + content);
 
-        return received;
+        return content;
     }
 
     private void release() {
