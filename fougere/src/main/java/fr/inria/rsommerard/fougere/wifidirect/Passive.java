@@ -5,15 +5,13 @@ import android.util.Log;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.UUID;
 
 import fr.inria.rsommerard.fougere.Fougere;
-import fr.inria.rsommerard.fougere.data.Data;
+import fr.inria.rsommerard.fougere.data.global.GlobalData;
 
 /**
  * Created by Romain on 10/08/16.
@@ -73,10 +71,10 @@ public class Passive implements Runnable {
             return;
         }
 
-        ArrayList<Data> data = new ArrayList<>();
-        data.add(new Data(UUID.randomUUID().toString(), "This is an other data! #Lol"));
+        ArrayList<GlobalData> data = new ArrayList<>();
+        data.add(new GlobalData(null, UUID.randomUUID().toString(), "This is an other data! #Lol"));
 
-        this.send(Data.gsonify(data));
+        this.send(GlobalData.gsonify(data));
 
         if ( ! Protocol.ACK.equals(this.receive())) {
             Log.e(Fougere.TAG, "[Passive] " + Protocol.ACK + " not received");

@@ -2,20 +2,17 @@ package fr.inria.rsommerard.fougere.wifidirect;
 
 import android.app.Activity;
 import android.content.Context;
-import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.net.wifi.p2p.WifiP2pManager.Channel;
-import android.os.Handler;
 import android.util.Log;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Random;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.List;
 
 import fr.inria.rsommerard.fougere.Fougere;
+import fr.inria.rsommerard.fougere.data.wifidirect.WiFiDirectData;
+import fr.inria.rsommerard.fougere.data.wifidirect.WiFiDirectDataPool;
 
 /**
  * Created by Romain on 01/08/16.
@@ -27,16 +24,31 @@ public class WiFiDirect {
 
     private final ServiceDiscovery serviceDiscovery;
     private final ConnectionHandler connectionHandler;
+    private final WiFiDirectDataPool wiFiDirectDataPool;
 
     public WiFiDirect(final Activity activity) {
         this.manager = (WifiP2pManager) activity.getSystemService(Context.WIFI_P2P_SERVICE);
         this.channel = this.manager.initialize(activity, activity.getMainLooper(),
                 new FougereChannelListener());
 
+        this.wiFiDirectDataPool = new WiFiDirectDataPool(activity);
+
         this.connectionHandler = new ConnectionHandler(activity, this.manager, this.channel);
 
         this.serviceDiscovery = new ServiceDiscovery(this.manager, this.channel,
                 this.connectionHandler);
+    }
+
+    public void addData(final WiFiDirectData data) {
+        this.wiFiDirectDataPool.insert(data);
+    }
+
+    public List<WiFiDirectData> getAllData() {
+        return this.wiFiDirectDataPool.getAll();
+    }
+
+    public void removeData(final WiFiDirectData data) {
+        this.wiFiDirectDataPool.delete(data);
     }
 
     public void start() {
