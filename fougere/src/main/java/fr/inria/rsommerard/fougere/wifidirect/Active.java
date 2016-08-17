@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.UUID;
 
 import fr.inria.rsommerard.fougere.Fougere;
-import fr.inria.rsommerard.fougere.data.global.GlobalData;
+import fr.inria.rsommerard.fougere.data.Data;
 
 /**
  * Created by Romain on 10/08/16.
@@ -82,10 +82,10 @@ public class Active implements Runnable {
             return;
         }
 
-        ArrayList<GlobalData> data = new ArrayList<>();
-        data.add(new GlobalData(null, UUID.randomUUID().toString(), "This is a data! #Lol"));
+        ArrayList<Data> data = new ArrayList<>();
+        data.add(new Data(null, UUID.randomUUID().toString(), "This is a data! #Lol", 3, 2, 0));
 
-        this.send(GlobalData.gsonify(data));
+        this.send(Data.gsonify(data));
 
         if ( ! Protocol.ACK.equals(this.receive())) {
             Log.e(Fougere.TAG, "[Active] " + Protocol.ACK + " not received");

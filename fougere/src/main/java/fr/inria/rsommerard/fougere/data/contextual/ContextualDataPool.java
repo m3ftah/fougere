@@ -7,8 +7,6 @@ import android.util.Log;
 import java.util.List;
 
 import fr.inria.rsommerard.fougere.Fougere;
-import fr.inria.rsommerard.fougere.data.global.DaoMaster;
-import fr.inria.rsommerard.fougere.data.global.DaoSession;
 
 /**
  * Created by Romain on 14/08/2016.
@@ -29,7 +27,8 @@ public class ContextualDataPool {
     }
 
     public void insert(final ContextualData data) {
-        if (data.getIdentifier() == null || data.getContent() == null) {
+        if (data.getIdentifier() == null || data.getContent() == null || data.getTtl() < 0 ||
+                data.getDisseminate() < 0 || data.getSent() < 0) {
             return;
         }
 
@@ -38,11 +37,30 @@ public class ContextualDataPool {
                 .unique();
 
         if (found != null) {
-            Log.d(Fougere.TAG, "[ContextualDataPool] A data with the same identifier already exists");
+            Log.d(Fougere.TAG,
+                    "[ContextualDataPool] A data with the same identifier already exists");
             return;
         }
 
         this.contextualDataDao.insert(data);
+    }
+
+    public void update(final ContextualData data) {
+        if (data.getIdentifier() == null || data.getContent() == null || data.getTtl() < 0 ||
+                data.getDisseminate() < 0 || data.getSent() < 0) {
+            return;
+        }
+
+        ContextualData found = this.contextualDataDao.queryBuilder()
+                .where(ContextualDataDao.Properties.Identifier.eq(data.getIdentifier()))
+                .unique();
+
+        if (found == null) {
+            Log.d(Fougere.TAG, "[ContextualDataPool] The data does not found");
+            return;
+        }
+
+        this.contextualDataDao.update(data);
     }
 
     public void delete(final ContextualData data) {

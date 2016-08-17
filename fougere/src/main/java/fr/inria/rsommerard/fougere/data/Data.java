@@ -1,4 +1,4 @@
-package fr.inria.rsommerard.fougere.data.global;
+package fr.inria.rsommerard.fougere.data;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -15,11 +15,11 @@ import java.util.List;
 import org.greenrobot.greendao.annotation.Generated;
 
 /**
- * Created by Romain on 05/08/16.
+ * Created by Romain on 17/08/16.
  */
 @Entity
-public class GlobalData {
-    
+public class Data {
+
     @Id(autoincrement = true)
     private Long id;
 
@@ -31,32 +31,48 @@ public class GlobalData {
     @NotNull
     private String content;
 
-    @Generated(hash = 1830018407)
-    public GlobalData(Long id, @NotNull String identifier, @NotNull String content) {
+    @Property
+    @NotNull
+    private int ttl;
+
+    @Property
+    @NotNull
+    private int disseminate;
+
+    @Property
+    @NotNull
+    private int sent;
+
+    @Generated(hash = 1933346554)
+    public Data(Long id, @NotNull String identifier, @NotNull String content, int ttl,
+                int disseminate, int sent) {
         this.id = id;
         this.identifier = identifier;
         this.content = content;
+        this.ttl = ttl;
+        this.disseminate = disseminate;
+        this.sent = sent;
     }
 
-    @Generated(hash = 1173898045)
-    public GlobalData() {
+    @Generated(hash = 2135787902)
+    public Data() {
     }
 
-    public static List<GlobalData> deGsonify(final String json) {
+    public static List<Data> deGsonify(final String json) {
         GsonBuilder builder = new GsonBuilder();
         Gson gson = builder.create();
 
-        Type type = new TypeToken<ArrayList<GlobalData>>() {}.getType();
+        Type type = new TypeToken<ArrayList<Data>>() {}.getType();
 
         return gson.fromJson(json, type);
     }
 
-    public static String gsonify(final List<GlobalData> data) {
+    public static String gsonify(final List<Data> data) {
         GsonBuilder builder = new GsonBuilder();
         builder.serializeNulls();
         Gson gson = builder.create();
 
-        Type type = new TypeToken<ArrayList<GlobalData>>() {}.getType();
+        Type type = new TypeToken<ArrayList<Data>>() {}.getType();
 
         return gson.toJson(data, type);
     }
@@ -64,7 +80,32 @@ public class GlobalData {
     @Override
     public String toString() {
         return "{\"id\":\"" + this.id + "\",\"identifier\":\"" + this.identifier +
-                "\",\"content\":\"" + this.content + "\"}";
+                "\",\"content\":\"" + this.content + "\",\"ttl\":\"" + this.ttl +
+                "\",\"disseminate\":\"" + this.disseminate + "\",\"sent\":\"" + this.sent + "\"}";
+    }
+
+    public int getSent() {
+        return this.sent;
+    }
+
+    public void setSent(int sent) {
+        this.sent = sent;
+    }
+
+    public int getDisseminate() {
+        return this.disseminate;
+    }
+
+    public void setDisseminate(int disseminate) {
+        this.disseminate = disseminate;
+    }
+
+    public int getTtl() {
+        return this.ttl;
+    }
+
+    public void setTtl(int ttl) {
+        this.ttl = ttl;
     }
 
     public String getContent() {

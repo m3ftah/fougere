@@ -1,4 +1,4 @@
-package fr.inria.rsommerard.fougere.data.social;
+package fr.inria.rsommerard.fougere.data;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
@@ -11,77 +11,77 @@ import fr.inria.rsommerard.fougere.data.contextual.DaoMaster;
 import fr.inria.rsommerard.fougere.data.contextual.DaoSession;
 
 /**
- * Created by Romain on 14/08/2016.
+ * Created by Romain on 17/08/16.
  */
-public class SocialDataPool {
+public class DataPool {
 
-    private final SocialDataDao socialDataDao;
+    private final DataDao dataDao;
 
-    public SocialDataPool(final Context context) {
+    public DataPool(final Context context) {
         DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(context, "fougere-db", null);
         SQLiteDatabase db = helper.getWritableDatabase();
         DaoMaster daoMaster = new DaoMaster(db);
         DaoSession daoSession = daoMaster.newSession();
-        this.socialDataDao = daoSession.getSocialDataDao();
+        this.dataDao = daoSession.getDataDao();
 
         // TODO: to remove
-        this.socialDataDao.deleteAll();
+        this.dataDao.deleteAll();
     }
 
-    public void insert(final SocialData data) {
+    public void insert(final Data data) {
         if (data.getIdentifier() == null || data.getContent() == null || data.getTtl() < 0 ||
                 data.getDisseminate() < 0 || data.getSent() < 0) {
             return;
         }
 
-        SocialData found = this.socialDataDao.queryBuilder()
-                .where(SocialDataDao.Properties.Identifier.eq(data.getIdentifier()))
+        Data found = this.dataDao.queryBuilder()
+                .where(DataDao.Properties.Identifier.eq(data.getIdentifier()))
                 .unique();
 
         if (found != null) {
-            Log.d(Fougere.TAG, "[SocialDataPool] A data with the same identifier already exists");
+            Log.d(Fougere.TAG, "[DataPool] A data with the same identifier already exists");
             return;
         }
 
-        this.socialDataDao.insert(data);
+        this.dataDao.insert(data);
     }
 
-    public void update(final SocialData data) {
+    public void update(final Data data) {
         if (data.getIdentifier() == null || data.getContent() == null || data.getTtl() < 0 ||
                 data.getDisseminate() < 0 || data.getSent() < 0) {
             return;
         }
 
-        SocialData found = this.socialDataDao.queryBuilder()
-                .where(SocialDataDao.Properties.Identifier.eq(data.getIdentifier()))
+        Data found = this.dataDao.queryBuilder()
+                .where(DataDao.Properties.Identifier.eq(data.getIdentifier()))
                 .unique();
 
         if (found == null) {
-            Log.d(Fougere.TAG, "[SocialDataPool] The data does not found");
+            Log.d(Fougere.TAG, "[DataPool] The data does not found");
             return;
         }
 
-        this.socialDataDao.update(data);
+        this.dataDao.update(data);
     }
 
-    public void delete(final SocialData data) {
+    public void delete(final Data data) {
         if (data.getIdentifier() == null) {
             return;
         }
 
-        SocialData found = this.socialDataDao.queryBuilder()
-                .where(SocialDataDao.Properties.Identifier.eq(data.getIdentifier()))
+        Data found = this.dataDao.queryBuilder()
+                .where(DataDao.Properties.Identifier.eq(data.getIdentifier()))
                 .unique();
 
         if (found == null) {
-            Log.d(Fougere.TAG, "[SocialDataPool] The data does not found");
+            Log.d(Fougere.TAG, "[DataPool] The data does not found");
             return;
         }
 
-        this.socialDataDao.delete(found);
+        this.dataDao.delete(found);
     }
 
-    public List<SocialData> getAll() {
-        return this.socialDataDao.loadAll();
+    public List<Data> getAll() {
+        return this.dataDao.loadAll();
     }
 }
