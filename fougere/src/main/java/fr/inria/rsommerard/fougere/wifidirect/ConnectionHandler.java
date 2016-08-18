@@ -24,6 +24,9 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import fr.inria.rsommerard.fougere.Fougere;
+import fr.inria.rsommerard.fougere.data.DataPool;
+import fr.inria.rsommerard.fougere.data.wifidirect.WiFiDirectData;
+import fr.inria.rsommerard.fougere.data.wifidirect.WiFiDirectDataPool;
 
 /**
  * Created by Romain on 03/08/16.
@@ -40,6 +43,8 @@ public class ConnectionHandler {
     private final Handler handler;
     private final Runnable timeout;
     private final Runnable passive;
+    private final WiFiDirectDataPool wiFiDirectDataPool;
+    private final DataPool dataPool;
     private ScheduledExecutorService executor;
     private final Context activity;
     private final IntentFilter intentFilter;
@@ -55,13 +60,17 @@ public class ConnectionHandler {
     private ConnectionState state;
 
     public ConnectionHandler(final Activity activity, final WifiP2pManager manager,
-                             final Channel channel) {
+                             final Channel channel, final DataPool dataPool,
+                             final WiFiDirectDataPool wiFiDirectDataPool) {
         this.manager = manager;
         this.channel = channel;
 
         this.activity = activity;
 
-        this.passive = new Passive();
+        this.dataPool = dataPool;
+        this.wiFiDirectDataPool = wiFiDirectDataPool;
+
+        this.passive = new Passive(this.dataPool, this.wiFiDirectDataPool);
 
         HandlerThread handlerThread = new HandlerThread("ConnectionHandlerThread");
         handlerThread.start();
@@ -168,7 +177,9 @@ public class ConnectionHandler {
                     if (wiFiP2pInfo.isGroupOwner) {
                         ConnectionHandler.this.handler.post(ConnectionHandler.this.passive);
                     } else {
-                        ConnectionHandler.this.active = new Active(wiFiP2pInfo.groupOwnerAddress);
+                        ConnectionHandler.this.active = new Active(wiFiP2pInfo.groupOwnerAddress,
+                                ConnectionHandler.this.dataPool,
+                                ConnectionHandler.this.wiFiDirectDataPool);
                         ConnectionHandler.this.handler.postDelayed(ConnectionHandler.this.active,
                                 DELAY);
                     }

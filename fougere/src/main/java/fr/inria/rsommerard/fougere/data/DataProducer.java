@@ -15,6 +15,11 @@ public class DataProducer {
     public static Data produce() {
         Random rand = new Random();
         String key = Integer.toString(rand.nextInt());
+
+        return DataProducer.produce(key);
+    }
+
+    public static Data produce(String key) {
         int ttl = 3;
         int disseminate = 2;
         int sent = 0;

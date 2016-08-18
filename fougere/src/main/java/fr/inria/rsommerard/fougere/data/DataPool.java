@@ -43,6 +43,8 @@ public class DataPool {
             return;
         }
 
+        Log.d(Fougere.TAG, "[DataPool] Insert: " + data.toString());
+
         this.dataDao.insert(data);
     }
 
@@ -61,6 +63,9 @@ public class DataPool {
             return;
         }
 
+        Log.d(Fougere.TAG, "[DataPool] Update: " + found.toString());
+        Log.d(Fougere.TAG, "[DataPool] To: " + data.toString());
+
         this.dataDao.update(data);
     }
 
@@ -77,6 +82,8 @@ public class DataPool {
             Log.d(Fougere.TAG, "[DataPool] The data does not found");
             return;
         }
+
+        Log.d(Fougere.TAG, "[DataPool] Delete: " + found.toString());
 
         this.dataDao.delete(found);
     }

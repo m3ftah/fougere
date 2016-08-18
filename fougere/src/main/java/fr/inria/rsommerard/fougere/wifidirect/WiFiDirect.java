@@ -11,6 +11,7 @@ import java.lang.reflect.Method;
 import java.util.List;
 
 import fr.inria.rsommerard.fougere.Fougere;
+import fr.inria.rsommerard.fougere.data.DataPool;
 import fr.inria.rsommerard.fougere.data.wifidirect.WiFiDirectData;
 import fr.inria.rsommerard.fougere.data.wifidirect.WiFiDirectDataPool;
 
@@ -26,14 +27,15 @@ public class WiFiDirect {
     private final ConnectionHandler connectionHandler;
     private final WiFiDirectDataPool wiFiDirectDataPool;
 
-    public WiFiDirect(final Activity activity) {
+    public WiFiDirect(final Activity activity, final DataPool dataPool) {
         this.manager = (WifiP2pManager) activity.getSystemService(Context.WIFI_P2P_SERVICE);
         this.channel = this.manager.initialize(activity, activity.getMainLooper(),
                 new FougereChannelListener());
 
         this.wiFiDirectDataPool = new WiFiDirectDataPool(activity);
 
-        this.connectionHandler = new ConnectionHandler(activity, this.manager, this.channel);
+        this.connectionHandler = new ConnectionHandler(activity, this.manager, this.channel,
+                dataPool, this.wiFiDirectDataPool);
 
         this.serviceDiscovery = new ServiceDiscovery(this.manager, this.channel,
                 this.connectionHandler);

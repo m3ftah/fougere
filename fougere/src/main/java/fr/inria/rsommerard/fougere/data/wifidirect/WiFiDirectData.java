@@ -90,6 +90,11 @@ public class WiFiDirectData {
                 data.getDisseminate(), data.getSent());
     }
 
+    public static WiFiDirectData reset(final WiFiDirectData data) {
+        return new WiFiDirectData(null, data.getIdentifier(), data.getContent(), data.getTtl(),
+                data.getDisseminate(), 0);
+    }
+
     @Override
     public String toString() {
         return "{\"id\":\"" + this.id + "\",\"identifier\":\"" + this.identifier +

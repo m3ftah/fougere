@@ -4,15 +4,18 @@ import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.wifi.WifiManager;
 import android.util.Log;
 
 import java.security.SecureRandom;
 import java.util.List;
+import java.util.Random;
 
 import fr.inria.rsommerard.fougere.contextual.Contextual;
 import fr.inria.rsommerard.fougere.data.Data;
 import fr.inria.rsommerard.fougere.data.DataPool;
+import fr.inria.rsommerard.fougere.data.DataProducer;
 import fr.inria.rsommerard.fougere.data.contextual.ContextualData;
 import fr.inria.rsommerard.fougere.data.social.SocialData;
 import fr.inria.rsommerard.fougere.data.wifidirect.WiFiDirectData;
@@ -41,15 +44,19 @@ public class Fougere {
 
         this.random = new SecureRandom();
 
-        this.wiFiDirect = new WiFiDirect(activity);
+        this.wiFiDirect = new WiFiDirect(activity, this.dataPool);
         this.contextual = new Contextual(activity);
         this.social = new Social(activity);
+
+        if (this.dataPool.getAll().size() == 0) {
+            this.experimentationInit();
+        }
 
         this.recoverData();
 
         this.allocateData();
 
-        /*WiFiReceiver wiFiReceiver = new WiFiReceiver();
+        WiFiReceiver wiFiReceiver = new WiFiReceiver();
 
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION);
@@ -58,7 +65,21 @@ public class Fougere {
         WifiManager manager = (WifiManager) activity.getSystemService(Context.WIFI_SERVICE);
         if (manager.isWifiEnabled()) {
             this.wiFiDirect.start();
-        }*/
+        }
+    }
+
+    public void release() {
+        this.wiFiDirect.stop();
+    }
+
+    // TODO: to delete
+    private void experimentationInit() {
+        Random rand = new Random();
+        int key = rand.nextInt(10000);
+
+        for (int i = 0; i < 5; i++) {
+            this.dataPool.insert(DataProducer.produce(Integer.toString(key)));
+        }
     }
 
     private void allocateData() {
@@ -81,6 +102,8 @@ public class Fougere {
             } else if (rnd < CONTEXTUAL_ALLOCATION) {
                 this.contextual.addData(ContextualData.fromData(dt));
             }
+
+            this.dataPool.delete(dt);
         }
     }
 

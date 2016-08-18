@@ -43,6 +43,8 @@ public class SocialDataPool {
             return;
         }
 
+        Log.d(Fougere.TAG, "[SocialDataPool] Insert: " + data.toString());
+
         this.socialDataDao.insert(data);
     }
 
@@ -61,6 +63,9 @@ public class SocialDataPool {
             return;
         }
 
+        Log.d(Fougere.TAG, "[SocialDataPool] Update: " + found.toString());
+        Log.d(Fougere.TAG, "[SocialDataPool] To: " + data.toString());
+
         this.socialDataDao.update(data);
     }
 
@@ -77,6 +82,8 @@ public class SocialDataPool {
             Log.d(Fougere.TAG, "[SocialDataPool] The data does not found");
             return;
         }
+
+        Log.d(Fougere.TAG, "[SocialDataPool] Delete: " + found.toString());
 
         this.socialDataDao.delete(found);
     }

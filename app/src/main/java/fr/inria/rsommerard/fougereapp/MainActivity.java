@@ -21,4 +21,10 @@ public class MainActivity extends AppCompatActivity {
 
         this.fougere = new Fougere(this);
     }
+
+    @Override
+    protected void onDestroy() {
+        this.fougere.release();
+        super.onDestroy();
+    }
 }

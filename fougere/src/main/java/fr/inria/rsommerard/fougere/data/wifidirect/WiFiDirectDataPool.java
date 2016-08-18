@@ -44,6 +44,8 @@ public class WiFiDirectDataPool {
             return;
         }
 
+        Log.d(Fougere.TAG, "[WiFiDirectDataPool] Insert: " + data.toString());
+
         this.wiFiDirectDataDao.insert(data);
     }
 
@@ -62,6 +64,9 @@ public class WiFiDirectDataPool {
             return;
         }
 
+        Log.d(Fougere.TAG, "[WiFiDirectDataPool] Update: " + found.toString());
+        Log.d(Fougere.TAG, "[WiFiDirectDataPool] To: " + data.toString());
+
         this.wiFiDirectDataDao.update(data);
     }
 
@@ -78,6 +83,8 @@ public class WiFiDirectDataPool {
             Log.d(Fougere.TAG, "[WiFiDirectDataPool] The data does not found");
             return;
         }
+
+        Log.d(Fougere.TAG, "[WiFiDirectDataPool] Delete: " + found.toString());
 
         this.wiFiDirectDataDao.delete(found);
     }

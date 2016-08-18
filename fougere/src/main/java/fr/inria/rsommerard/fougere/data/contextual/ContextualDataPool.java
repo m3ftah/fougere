@@ -42,6 +42,8 @@ public class ContextualDataPool {
             return;
         }
 
+        Log.d(Fougere.TAG, "[ContextualDataPool] Insert: " + data.toString());
+
         this.contextualDataDao.insert(data);
     }
 
@@ -60,6 +62,9 @@ public class ContextualDataPool {
             return;
         }
 
+        Log.d(Fougere.TAG, "[ContextualDataPool] Update: " + found.toString());
+        Log.d(Fougere.TAG, "[ContextualDataPool] To: " + data.toString());
+
         this.contextualDataDao.update(data);
     }
 
@@ -76,6 +81,8 @@ public class ContextualDataPool {
             Log.d(Fougere.TAG, "[ContextualDataPool] The data does not found");
             return;
         }
+
+        Log.d(Fougere.TAG, "[ContextualDataPool] Delete: " + found.toString());
 
         this.contextualDataDao.delete(found);
     }

@@ -77,6 +77,11 @@ public class Data {
         return gson.toJson(data, type);
     }
 
+    public static Data reset(final Data data) {
+        return new Data(null, data.getIdentifier(), data.getContent(), data.getTtl(),
+                data.getDisseminate(), 0);
+    }
+
     @Override
     public String toString() {
         return "{\"id\":\"" + this.id + "\",\"identifier\":\"" + this.identifier +
