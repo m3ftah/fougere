@@ -20,5 +20,12 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         this.fougere = new Fougere(this);
+        this.fougere.start();
+    }
+
+    @Override
+    protected void onDestroy() {
+        this.fougere.stop();
+        super.onDestroy();
     }
 }

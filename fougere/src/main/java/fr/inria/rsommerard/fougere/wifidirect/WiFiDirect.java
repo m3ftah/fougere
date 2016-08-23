@@ -8,16 +8,24 @@ import android.util.Log;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 
 import fr.inria.rsommerard.fougere.Fougere;
+import fr.inria.rsommerard.fougere.FougereModule;
+import fr.inria.rsommerard.fougere.data.Data;
+import fr.inria.rsommerard.fougere.data.DataPool;
 import fr.inria.rsommerard.fougere.data.wifidirect.WiFiDirectData;
 import fr.inria.rsommerard.fougere.data.wifidirect.WiFiDirectDataPool;
 
 /**
  * Created by Romain on 01/08/16.
  */
-public class WiFiDirect {
+public class WiFiDirect implements FougereModule {
+
+    public static final String NAME = "WiFiDirect";
+
+    private int ratio;
 
     private final WifiP2pManager manager;
     private final Channel channel;
@@ -26,31 +34,45 @@ public class WiFiDirect {
     private final ConnectionHandler connectionHandler;
     private final WiFiDirectDataPool wiFiDirectDataPool;
 
-    public WiFiDirect(final Activity activity) {
+    public WiFiDirect(final Activity activity, final DataPool dataPool) {
+        this.ratio = 60;
+
         this.manager = (WifiP2pManager) activity.getSystemService(Context.WIFI_P2P_SERVICE);
         this.channel = this.manager.initialize(activity, activity.getMainLooper(),
                 new FougereChannelListener());
 
         this.wiFiDirectDataPool = new WiFiDirectDataPool(activity);
 
-        this.connectionHandler = new ConnectionHandler(activity, this.manager, this.channel);
+        this.connectionHandler = new ConnectionHandler(activity, this.manager, this.channel,
+                dataPool, this.wiFiDirectDataPool);
 
         this.serviceDiscovery = new ServiceDiscovery(this.manager, this.channel,
                 this.connectionHandler);
     }
 
-    public void addData(final WiFiDirectData data) {
-        this.wiFiDirectDataPool.insert(data);
+    @Override
+    public void addData(final Data data) {
+        this.wiFiDirectDataPool.insert(WiFiDirectData.fromData(data));
     }
 
-    public List<WiFiDirectData> getAllData() {
-        return this.wiFiDirectDataPool.getAll();
+    @Override
+    public List<Data> getAllData() {
+        List<WiFiDirectData> wiFiDirectData = this.wiFiDirectDataPool.getAll();
+        List<Data> data = new ArrayList<>();
+
+        for (WiFiDirectData dt : wiFiDirectData) {
+            data.add(WiFiDirectData.toData(dt));
+        }
+
+        return data;
     }
 
-    public void removeData(final WiFiDirectData data) {
-        this.wiFiDirectDataPool.delete(data);
+    @Override
+    public void removeData(final Data data) {
+        this.wiFiDirectDataPool.delete(WiFiDirectData.fromData(data));
     }
 
+    @Override
     public void start() {
         this.cleanAllGroupsRegistered();
 
@@ -59,10 +81,26 @@ public class WiFiDirect {
         this.serviceDiscovery.start();
     }
 
+    @Override
     public void stop() {
         this.serviceDiscovery.stop();
 
         this.connectionHandler.stop();
+    }
+
+    @Override
+    public int getRatio() {
+        return this.ratio;
+    }
+
+    @Override
+    public void setRatio(int ratio) {
+        this.ratio = ratio;
+    }
+
+    @Override
+    public String getName() {
+        return WiFiDirect.NAME;
     }
 
     private void cleanAllGroupsRegistered() {

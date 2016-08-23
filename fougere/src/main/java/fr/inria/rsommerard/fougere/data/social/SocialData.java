@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.List;
 import org.greenrobot.greendao.annotation.Generated;
 
+import fr.inria.rsommerard.fougere.data.Data;
+
 /**
  * Created by Romain on 15/08/2016.
  */
@@ -31,11 +33,27 @@ public class SocialData {
     @NotNull
     private String content;
 
-    @Generated(hash = 1085393968)
-    public SocialData(Long id, @NotNull String identifier, @NotNull String content) {
+    @Property
+    @NotNull
+    private int ttl;
+
+    @Property
+    @NotNull
+    private int disseminate;
+
+    @Property
+    @NotNull
+    private int sent;
+
+    @Generated(hash = 1652881791)
+    public SocialData(Long id, @NotNull String identifier, @NotNull String content, int ttl,
+            int disseminate, int sent) {
         this.id = id;
         this.identifier = identifier;
         this.content = content;
+        this.ttl = ttl;
+        this.disseminate = disseminate;
+        this.sent = sent;
     }
 
     @Generated(hash = 1295431646)
@@ -61,10 +79,21 @@ public class SocialData {
         return gson.toJson(data, type);
     }
 
+    public static Data toData(final SocialData data) {
+        return new Data(null, data.getIdentifier(), data.getContent(), data.getTtl(),
+                data.getDisseminate(), data.getSent());
+    }
+
+    public static SocialData fromData(final Data data) {
+        return new SocialData(null, data.getIdentifier(), data.getContent(), data.getTtl(),
+                data.getDisseminate(), data.getSent());
+    }
+
     @Override
     public String toString() {
         return "{\"id\":\"" + this.id + "\",\"identifier\":\"" + this.identifier +
-                "\",\"content\":\"" + this.content + "\"}";
+                "\",\"content\":\"" + this.content + "\",\"ttl\":\"" + this.ttl +
+                "\",\"disseminate\":\"" + this.disseminate + "\",\"sent\":\"" + this.sent + "\"}";
     }
 
     public String getContent() {
@@ -89,5 +118,29 @@ public class SocialData {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public int getSent() {
+        return this.sent;
+    }
+
+    public void setSent(int sent) {
+        this.sent = sent;
+    }
+
+    public int getDisseminate() {
+        return this.disseminate;
+    }
+
+    public void setDisseminate(int disseminate) {
+        this.disseminate = disseminate;
+    }
+
+    public int getTtl() {
+        return this.ttl;
+    }
+
+    public void setTtl(int ttl) {
+        this.ttl = ttl;
     }
 }

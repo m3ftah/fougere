@@ -70,7 +70,8 @@ public class WiFiDirectDataPoolTest {
         WiFiDirectData data1 = WiFiDirectDataProducer.produce();
         this.wiFiDirectDataPool.insert(data1);
 
-        WiFiDirectData data2 = new WiFiDirectData(null, data1.getIdentifier(), data1.getContent());
+        WiFiDirectData data2 = new WiFiDirectData(null, data1.getIdentifier(), data1.getContent(),
+                data1.getTtl(), data1.getDisseminate(), data1.getSent());
         this.wiFiDirectDataPool.insert(data2);
 
         Assert.assertEquals(1, this.wiFiDirectDataPool.getAll().size());
@@ -79,7 +80,8 @@ public class WiFiDirectDataPoolTest {
     @Test
     public void insertADataWithNullIdentifier() {
         WiFiDirectData data = WiFiDirectDataProducer.produce();
-        WiFiDirectData data1 = new WiFiDirectData(null, null, data.getContent());
+        WiFiDirectData data1 = new WiFiDirectData(null, null, data.getContent(), data.getTtl(),
+                data.getDisseminate(), data.getSent());
         this.wiFiDirectDataPool.insert(data1);
 
         Assert.assertEquals(0, this.wiFiDirectDataPool.getAll().size());
@@ -88,10 +90,52 @@ public class WiFiDirectDataPoolTest {
     @Test
     public void insertADataWithNullContent() {
         WiFiDirectData data = WiFiDirectDataProducer.produce();
-        WiFiDirectData data1 = new WiFiDirectData(null, data.getIdentifier(), null);
+        WiFiDirectData data1 = new WiFiDirectData(null, data.getIdentifier(), null, data.getTtl(),
+                data.getDisseminate(), data.getSent());
         this.wiFiDirectDataPool.insert(data1);
 
         Assert.assertEquals(0, this.wiFiDirectDataPool.getAll().size());
+    }
+
+    @Test
+    public void insertADataWithNegativeTtl() {
+        WiFiDirectData data = WiFiDirectDataProducer.produce();
+        WiFiDirectData data1 = new WiFiDirectData(null, data.getIdentifier(), data.getContent(), -1,
+                data.getDisseminate(), data.getSent());
+        this.wiFiDirectDataPool.insert(data1);
+
+        Assert.assertEquals(0, this.wiFiDirectDataPool.getAll().size());
+    }
+
+    @Test
+    public void insertADataWithNegativeDisseminate() {
+        WiFiDirectData data = WiFiDirectDataProducer.produce();
+        WiFiDirectData data1 = new WiFiDirectData(null, data.getIdentifier(), data.getContent(),
+                data.getTtl(), -1, data.getSent());
+        this.wiFiDirectDataPool.insert(data1);
+
+        Assert.assertEquals(0, this.wiFiDirectDataPool.getAll().size());
+    }
+
+    @Test
+    public void insertADataWithNegativeSent() {
+        WiFiDirectData data = WiFiDirectDataProducer.produce();
+        WiFiDirectData data1 = new WiFiDirectData(null, data.getIdentifier(), data.getContent(),
+                data.getTtl(), data.getDisseminate(), -1);
+        this.wiFiDirectDataPool.insert(data1);
+
+        Assert.assertEquals(0, this.wiFiDirectDataPool.getAll().size());
+    }
+
+    @Test
+    public void updateAData() {
+        WiFiDirectData data = WiFiDirectDataProducer.produce();
+        this.wiFiDirectDataPool.insert(data);
+
+        data.setContent("Modified!");
+        this.wiFiDirectDataPool.update(data);
+
+        Assert.assertEquals("Modified!", this.wiFiDirectDataPool.getAll().get(0).getContent());
     }
 
     @Test
@@ -108,7 +152,8 @@ public class WiFiDirectDataPoolTest {
         WiFiDirectData data = WiFiDirectDataProducer.produce();
         this.wiFiDirectDataPool.insert(data);
 
-        WiFiDirectData data1 = new WiFiDirectData(null, data.getIdentifier(), data.getContent());
+        WiFiDirectData data1 = new WiFiDirectData(null, data.getIdentifier(), data.getContent(),
+                data.getTtl(), data.getDisseminate(), data.getSent());
         this.wiFiDirectDataPool.delete(data1);
 
         Assert.assertEquals(0, this.wiFiDirectDataPool.getAll().size());
@@ -119,7 +164,8 @@ public class WiFiDirectDataPoolTest {
         WiFiDirectData data = WiFiDirectDataProducer.produce();
         this.wiFiDirectDataPool.insert(data);
 
-        WiFiDirectData data1 = new WiFiDirectData(null, null, data.getContent());
+        WiFiDirectData data1 = new WiFiDirectData(null, null, data.getContent(), data.getTtl(),
+                data.getDisseminate(), data.getSent());
         this.wiFiDirectDataPool.delete(data1);
 
         Assert.assertEquals(1, this.wiFiDirectDataPool.getAll().size());
@@ -130,7 +176,44 @@ public class WiFiDirectDataPoolTest {
         WiFiDirectData data = WiFiDirectDataProducer.produce();
         this.wiFiDirectDataPool.insert(data);
 
-        WiFiDirectData data1 = new WiFiDirectData(null, data.getIdentifier(), null);
+        WiFiDirectData data1 = new WiFiDirectData(null, data.getIdentifier(), null, data.getTtl(),
+                data.getDisseminate(), data.getSent());
+        this.wiFiDirectDataPool.delete(data1);
+
+        Assert.assertEquals(0, this.wiFiDirectDataPool.getAll().size());
+    }
+
+    @Test
+    public void deleteADataWithNegativeTtl() {
+        WiFiDirectData data = WiFiDirectDataProducer.produce();
+        this.wiFiDirectDataPool.insert(data);
+
+        WiFiDirectData data1 = new WiFiDirectData(null, data.getIdentifier(), data.getContent(), -1,
+                data.getDisseminate(), data.getSent());
+        this.wiFiDirectDataPool.delete(data1);
+
+        Assert.assertEquals(0, this.wiFiDirectDataPool.getAll().size());
+    }
+
+    @Test
+    public void deleteADataWithNegativeDisseminate() {
+        WiFiDirectData data = WiFiDirectDataProducer.produce();
+        this.wiFiDirectDataPool.insert(data);
+
+        WiFiDirectData data1 = new WiFiDirectData(null, data.getIdentifier(), data.getContent(),
+                data.getTtl(), -1, data.getSent());
+        this.wiFiDirectDataPool.delete(data1);
+
+        Assert.assertEquals(0, this.wiFiDirectDataPool.getAll().size());
+    }
+
+    @Test
+    public void deleteADataWithNegativeSent() {
+        WiFiDirectData data = WiFiDirectDataProducer.produce();
+        this.wiFiDirectDataPool.insert(data);
+
+        WiFiDirectData data1 = new WiFiDirectData(null, data.getIdentifier(), data.getContent(),
+                data.getTtl(), data.getDisseminate(), data.getSent());
         this.wiFiDirectDataPool.delete(data1);
 
         Assert.assertEquals(0, this.wiFiDirectDataPool.getAll().size());

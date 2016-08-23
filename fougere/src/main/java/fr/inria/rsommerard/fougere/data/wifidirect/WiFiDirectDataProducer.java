@@ -6,6 +6,8 @@ import java.util.Random;
 import java.util.UUID;
 
 import fr.inria.rsommerard.fougere.Fougere;
+import fr.inria.rsommerard.fougere.data.Data;
+import fr.inria.rsommerard.fougere.data.DataProducer;
 
 /**
  * Created by Romain on 14/08/2016.
@@ -13,9 +15,13 @@ import fr.inria.rsommerard.fougere.Fougere;
 public class WiFiDirectDataProducer {
 
     public static WiFiDirectData produce() {
-        String key = Integer.toString(new Random().nextInt());
-        WiFiDirectData data = new WiFiDirectData(null, UUID.randomUUID().toString(), "#" + key + "#");
+        Data dt = DataProducer.produce();
+
+        WiFiDirectData data = new WiFiDirectData(null, dt.getIdentifier(), dt.getContent(),
+                dt.getTtl(), dt.getDisseminate(), dt.getSent());
+
         Log.d(Fougere.TAG, "[WiFiDirectDataProducer] WiFiDirectData produced: " + data);
+
         return data;
     }
 }

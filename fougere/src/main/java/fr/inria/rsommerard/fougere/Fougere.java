@@ -4,18 +4,27 @@ import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.wifi.WifiManager;
 import android.util.Log;
 
+import java.security.SecureRandom;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Random;
 
 import fr.inria.rsommerard.fougere.contextual.Contextual;
+import fr.inria.rsommerard.fougere.data.Data;
+import fr.inria.rsommerard.fougere.data.DataPool;
+import fr.inria.rsommerard.fougere.data.DataProducer;
 import fr.inria.rsommerard.fougere.data.contextual.ContextualData;
-import fr.inria.rsommerard.fougere.data.global.GlobalData;
-import fr.inria.rsommerard.fougere.data.global.GlobalDataPool;
 import fr.inria.rsommerard.fougere.data.social.SocialData;
 import fr.inria.rsommerard.fougere.data.wifidirect.WiFiDirectData;
 import fr.inria.rsommerard.fougere.social.Social;
+import fr.inria.rsommerard.fougere.wifidirect.Active;
 import fr.inria.rsommerard.fougere.wifidirect.WiFiDirect;
 
 /**
@@ -25,72 +34,152 @@ public class Fougere {
 
     public static final String TAG = "Fougere";
 
-    private final WiFiDirect wiFiDirect;
-    private final GlobalDataPool globalDataPool;
-    private final Contextual contextual;
-    private final Social social;
+    private final DataPool dataPool;
+    private final SecureRandom random;
+    private final HashMap<String, FougereModule> modules;
+
+    private boolean isStarted;
+
+    private final Activity activity;
 
     public Fougere(final Activity activity) {
-        this.globalDataPool = new GlobalDataPool(activity);
+        this.activity = activity;
 
-        this.wiFiDirect = new WiFiDirect(activity);
-        this.contextual = new Contextual(activity);
-        this.social = new Social(activity);
+        this.dataPool = new DataPool(this.activity);
+        this.modules = new HashMap<>();
 
-        this.recoverData();
+        this.initializeModules();
 
-        this.allocateData();
+        this.random = new SecureRandom();
 
-        /*WiFiReceiver wiFiReceiver = new WiFiReceiver();
+        if (this.dataPool.getAll().size() == 0) {
+            this.experimentationInit();
+        }
+
+        WiFiReceiver wiFiReceiver = new WiFiReceiver();
 
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION);
-        activity.registerReceiver(wiFiReceiver, intentFilter);
+        this.activity.registerReceiver(wiFiReceiver, intentFilter);
+    }
 
-        WifiManager manager = (WifiManager) activity.getSystemService(Context.WIFI_SERVICE);
-        if (manager.isWifiEnabled()) {
-            this.wiFiDirect.start();
-        }*/
+    public void start() {
+        this.isStarted = true;
+
+        this.regroupData();
+        this.allocateData();
+
+        for (FougereModule module : this.modules.values()) {
+            if (WiFiDirect.NAME.equals(module.getName())) {
+                WifiManager manager = (WifiManager) this.activity.getSystemService(Context.WIFI_SERVICE);
+                if (manager.isWifiEnabled()) {
+                    //this.modules.get(WiFiDirect.NAME).start();
+                }
+            } else {
+                module.start();
+            }
+        }
+    }
+
+    private void initializeModules() {
+        WiFiDirect wiFiDirect = new WiFiDirect(this.activity, this.dataPool);
+        this.modules.put(WiFiDirect.NAME, wiFiDirect);
+
+        Contextual contextual = new Contextual(this.activity);
+        this.modules.put(Contextual.NAME, contextual);
+
+        Social social = new Social(this.activity);
+        this.modules.put(Social.NAME, social);
+    }
+
+    public void stop() {
+        this.isStarted = false;
+
+        for (FougereModule module : this.modules.values()) {
+            module.stop();
+        }
+    }
+
+    // TODO: to delete
+    private void experimentationInit() {
+        Random rand = new Random();
+        int key = rand.nextInt(10000);
+
+        for (int i = 0; i < 5; i++) {
+            this.dataPool.insert(DataProducer.produce(Integer.toString(key)));
+        }
+    }
+
+    public void addModule(final FougereModule module) {
+        if (this.isStarted) {
+            Log.e(Fougere.TAG, "Error: module cannot be added when Fougere is started");
+            return;
+        }
+
+        this.modules.put(module.getName(), module);
+    }
+
+    public void removeModule(final FougereModule module) {
+        if (this.isStarted) {
+            Log.e(Fougere.TAG, "Error: module cannot be removed when Fougere is started");
+            return;
+        }
+
+        if (this.modules.containsKey(module.getName())) {
+            this.modules.remove(module.getName());
+        }
     }
 
     private void allocateData() {
-
-    }
-
-    private void recoverData() {
-        Log.d(Fougere.TAG, "[Fougere] " + this.globalDataPool.getAll().size() +
-                " data in the GlobalDataPool");
-
-        List<WiFiDirectData> wiFiDirectData = this.wiFiDirect.getAllData();
-        Log.d(Fougere.TAG, "[Fougere] Recover " + wiFiDirectData.size() +
-                " data from the WiFiDirectDataPool");
-        for (WiFiDirectData data : wiFiDirectData) {
-            this.globalDataPool.insert(new GlobalData(null, data.getIdentifier(),
-                    data.getContent()));
-            this.wiFiDirect.removeData(data);
+        int totalRatio = 0;
+        for (FougereModule module : this.modules.values()) {
+            totalRatio += module.getRatio();
         }
 
-        List<ContextualData> contextualData = this.contextual.getAllData();
-        Log.d(Fougere.TAG, "[Fougere] Recover " + contextualData.size() +
-                " data from the ContextualDataPool");
-        for (ContextualData data : contextualData) {
-            this.globalDataPool.insert(new GlobalData(null, data.getIdentifier(),
-                    data.getContent()));
-            this.contextual.removeData(data);
+        if (totalRatio != 100) {
+            Log.e(Fougere.TAG, "Error: total ratio must be equals to 100 (actual: " + totalRatio + ")");
+            return;
         }
 
-        List<SocialData> socialData = this.social.getAllData();
-        Log.d(Fougere.TAG, "[Fougere] Recover " + socialData.size() +
-                " data from the SocialDataPool");
-        for (SocialData data: socialData) {
-            this.globalDataPool.insert(new GlobalData(null, data.getIdentifier(),
-                    data.getContent()));
-            this.social.removeData(data);
+        List<Data> data = this.dataPool.getAll();
+
+        List<FougereModule> mdls = new ArrayList<>(this.modules.values());
+        Collections.sort(mdls, new FougereModuleComparator());
+
+        for (Data dt : data) {
+            int rnd = this.random.nextInt(100);
+            int base = 0;
+
+            for (FougereModule mdl : mdls) {
+                if (rnd < base + mdl.getRatio()) {
+                    this.modules.get(mdl.getName()).addData(dt);
+                    break;
+                }
+
+                base = base + mdl.getRatio();
+            }
+
+            this.dataPool.delete(dt);
         }
     }
 
-    public void addData(final GlobalData data) {
-        this.globalDataPool.insert(data);
+    private void regroupData() {
+        Log.d(Fougere.TAG, "[Fougere] " + this.dataPool.getAll().size() +
+                " data in the DataPool");
+
+        for (FougereModule module : this.modules.values()) {
+            List<Data> moduleData = module.getAllData();
+            Log.d(Fougere.TAG, "[Fougere] Regroup " + moduleData.size() +
+                    " data from the " + module.getName() + " module");
+            for (Data data : moduleData) {
+                this.dataPool.insert(data);
+                module.removeData(data);
+            }
+        }
+    }
+
+    public void addData(final Data data) {
+        this.dataPool.insert(data);
     }
 
     private class WiFiReceiver extends BroadcastReceiver {
@@ -101,9 +190,9 @@ public class Fougere {
 
             if (action.equals(WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION)) {
                 if (intent.getBooleanExtra(WifiManager.EXTRA_SUPPLICANT_CONNECTED, false)){
-                    Fougere.this.wiFiDirect.start();
+                    //Fougere.this.modules.get(WiFiDirect.NAME).start();
                 } else {
-                    Fougere.this.wiFiDirect.stop();
+                    Fougere.this.modules.get(WiFiDirect.NAME).stop();
                 }
             }
         }

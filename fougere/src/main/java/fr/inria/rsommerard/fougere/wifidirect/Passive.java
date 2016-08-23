@@ -8,20 +8,31 @@ import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import fr.inria.rsommerard.fougere.Fougere;
-import fr.inria.rsommerard.fougere.data.global.GlobalData;
+import fr.inria.rsommerard.fougere.data.Data;
+import fr.inria.rsommerard.fougere.data.DataPool;
+import fr.inria.rsommerard.fougere.data.wifidirect.WiFiDirectData;
+import fr.inria.rsommerard.fougere.data.wifidirect.WiFiDirectDataPool;
 
 /**
  * Created by Romain on 10/08/16.
  */
 public class Passive implements Runnable {
 
+    private final WiFiDirectDataPool wiFiDirectDataPool;
+    private final DataPool dataPool;
     private ServerSocket serverSocket;
     private Socket socket;
     private ObjectInputStream input;
     private ObjectOutputStream output;
+
+    public Passive(final DataPool dataPool, final WiFiDirectDataPool wiFiDirectDataPool) {
+        this.wiFiDirectDataPool = wiFiDirectDataPool;
+        this.dataPool = dataPool;
+    }
 
     @Override
     public void run() {
@@ -64,6 +75,11 @@ public class Passive implements Runnable {
 
         String json = this.receive();
 
+        List<WiFiDirectData> dataReceived = WiFiDirectData.deGsonify(json);
+        for (WiFiDirectData dt : dataReceived) {
+            this.dataPool.insert(Data.reset(WiFiDirectData.toData(dt)));
+        }
+
         this.send(Protocol.ACK);
 
         if ( ! Protocol.SEND.equals(this.receive())) {
@@ -71,17 +87,40 @@ public class Passive implements Runnable {
             return;
         }
 
-        ArrayList<GlobalData> data = new ArrayList<>();
-        data.add(new GlobalData(null, UUID.randomUUID().toString(), "This is an other data! #Lol"));
+        List<WiFiDirectData> dataTemp = this.wiFiDirectDataPool.getAll();
+        List<WiFiDirectData> dataToSend = new ArrayList<>();
 
-        this.send(GlobalData.gsonify(data));
+        for (WiFiDirectData dt : dataTemp) {
+            dataToSend.add(WiFiDirectData.reset(dt));
+        }
+
+        this.send(WiFiDirectData.gsonify(dataToSend));
 
         if ( ! Protocol.ACK.equals(this.receive())) {
             Log.e(Fougere.TAG, "[Passive] " + Protocol.ACK + " not received");
             return;
         }
 
+        for (WiFiDirectData dt : dataTemp) {
+            int newSent = dt.getSent() + 1;
+
+            if (newSent >= dt.getDisseminate()) {
+                this.wiFiDirectDataPool.delete(dt);
+                continue;
+            }
+
+            dt.setSent(newSent);
+
+            this.wiFiDirectDataPool.update(dt);
+        }
+
         Log.d(Fougere.TAG, "[Passive] Process done");
+
+        this.send(Protocol.OUT);
+
+        if ( ! Protocol.OUT.equals(this.receive())) {
+            Log.e(Fougere.TAG, "[Passive] " + Protocol.OUT + " not received");
+        }
     }
 
     private void send(final String content) throws IOException {

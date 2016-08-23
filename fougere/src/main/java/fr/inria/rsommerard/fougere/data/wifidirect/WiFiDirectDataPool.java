@@ -7,8 +7,8 @@ import android.util.Log;
 import java.util.List;
 
 import fr.inria.rsommerard.fougere.Fougere;
-import fr.inria.rsommerard.fougere.data.global.DaoMaster;
-import fr.inria.rsommerard.fougere.data.global.DaoSession;
+import fr.inria.rsommerard.fougere.data.contextual.DaoMaster;
+import fr.inria.rsommerard.fougere.data.contextual.DaoSession;
 
 /**
  * Created by Romain on 14/08/2016.
@@ -29,7 +29,8 @@ public class WiFiDirectDataPool {
     }
 
     public void insert(final WiFiDirectData data) {
-        if (data.getIdentifier() == null || data.getContent() == null) {
+        if (data.getIdentifier() == null || data.getContent() == null || data.getTtl() < 0 ||
+                data.getDisseminate() < 0 || data.getSent() < 0) {
             return;
         }
 
@@ -38,11 +39,35 @@ public class WiFiDirectDataPool {
                 .unique();
 
         if (found != null) {
-            Log.d(Fougere.TAG, "[WiFiDirectDataPool] A data with the same identifier already exists");
+            Log.d(Fougere.TAG,
+                    "[WiFiDirectDataPool] A data with the same identifier already exists");
             return;
         }
 
+        Log.d(Fougere.TAG, "[WiFiDirectDataPool] Insert: " + data.toString());
+
         this.wiFiDirectDataDao.insert(data);
+    }
+
+    public void update(final WiFiDirectData data) {
+        if (data.getIdentifier() == null || data.getContent() == null || data.getTtl() < 0 ||
+                data.getDisseminate() < 0 || data.getSent() < 0) {
+            return;
+        }
+
+        WiFiDirectData found = this.wiFiDirectDataDao.queryBuilder()
+                .where(WiFiDirectDataDao.Properties.Identifier.eq(data.getIdentifier()))
+                .unique();
+
+        if (found == null) {
+            Log.d(Fougere.TAG, "[WiFiDirectDataPool] The data does not found");
+            return;
+        }
+
+        Log.d(Fougere.TAG, "[WiFiDirectDataPool] Update: " + found.toString());
+        Log.d(Fougere.TAG, "[WiFiDirectDataPool] To: " + data.toString());
+
+        this.wiFiDirectDataDao.update(data);
     }
 
     public void delete(final WiFiDirectData data) {
@@ -58,6 +83,8 @@ public class WiFiDirectDataPool {
             Log.d(Fougere.TAG, "[WiFiDirectDataPool] The data does not found");
             return;
         }
+
+        Log.d(Fougere.TAG, "[WiFiDirectDataPool] Delete: " + found.toString());
 
         this.wiFiDirectDataDao.delete(found);
     }
