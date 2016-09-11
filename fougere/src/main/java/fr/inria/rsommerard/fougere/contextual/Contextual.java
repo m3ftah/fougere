@@ -1,14 +1,24 @@
 package fr.inria.rsommerard.fougere.contextual;
 
 import android.app.Activity;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.util.Log;
 
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
+import fr.inria.rsommerard.fougere.Fougere;
+import fr.inria.rsommerard.fougere.FougereDistance;
 import fr.inria.rsommerard.fougere.FougereModule;
 import fr.inria.rsommerard.fougere.data.Data;
 import fr.inria.rsommerard.fougere.data.contextual.ContextualData;
 import fr.inria.rsommerard.fougere.data.contextual.ContextualDataPool;
+import retrofit2.Retrofit;
 
 /**
  * Created by Romain on 15/08/2016.
@@ -17,12 +27,19 @@ public class Contextual implements FougereModule {
 
     public static final String NAME = "Contextual";
 
+    private static final String SERVER = "http://10.32.0.45:8080/";
+
     private final ContextualDataPool contextualDataPool;
+    private final FougereDistance fougereDistance;
+    private final ContextualAPI api;
     private int ratio;
 
-    public Contextual(final Activity activity) {
+    public Contextual(final Activity activity, final FougereDistance fougereDistance) {
         this.contextualDataPool = new ContextualDataPool(activity);
         this.ratio = 10;
+        this.fougereDistance = fougereDistance;
+
+        this.api = new Retrofit.Builder().baseUrl(SERVER).build().create(ContextualAPI.class);
     }
 
     @Override
@@ -32,7 +49,21 @@ public class Contextual implements FougereModule {
 
     @Override
     public void start() {
-        // Nothing
+        List<ContextualUser> users;
+
+        try {
+            users = this.api.listUsers().execute().body();
+        } catch (IOException e) {
+            e.printStackTrace();
+            Log.e(Fougere.TAG, "[Contextual] Cannot get the contextual user list");
+            return;
+        }
+
+        Log.d(Fougere.TAG, "[Contextual] Users: " + users.toString());
+    }
+
+    public void disseminate() {
+        // send/recover data to/from server
     }
 
     @Override

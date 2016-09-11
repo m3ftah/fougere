@@ -1,12 +1,7 @@
 package fr.inria.rsommerard.fougereapp;
 
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-
-import java.util.Random;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import android.support.v7.app.AppCompatActivity;
 
 import fr.inria.rsommerard.fougere.Fougere;
 

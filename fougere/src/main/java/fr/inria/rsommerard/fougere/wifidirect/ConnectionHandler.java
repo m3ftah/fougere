@@ -16,16 +16,13 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
 
-import java.io.IOException;
-import java.net.ServerSocket;
-import java.security.SecureRandom;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import fr.inria.rsommerard.fougere.Fougere;
+import fr.inria.rsommerard.fougere.FougereDistance;
 import fr.inria.rsommerard.fougere.data.DataPool;
-import fr.inria.rsommerard.fougere.data.wifidirect.WiFiDirectData;
 import fr.inria.rsommerard.fougere.data.wifidirect.WiFiDirectDataPool;
 
 /**
@@ -42,14 +39,16 @@ public class ConnectionHandler {
     private final FougereActionListener removeGroupActionListener;
     private final Handler handler;
     private final Runnable timeout;
-    private final Runnable passive;
+    private Runnable passive;
     private final WiFiDirectDataPool wiFiDirectDataPool;
     private final DataPool dataPool;
+    private final FougereDistance fougereDistance;
     private ScheduledExecutorService executor;
     private final Context activity;
     private final IntentFilter intentFilter;
     private final ConnectionReceiver connectionReceiver;
     private Runnable active;
+    private WifiP2pDevice me;
 
     private enum ConnectionState {
         DISCONNECTED,
@@ -61,7 +60,8 @@ public class ConnectionHandler {
 
     public ConnectionHandler(final Activity activity, final WifiP2pManager manager,
                              final Channel channel, final DataPool dataPool,
-                             final WiFiDirectDataPool wiFiDirectDataPool) {
+                             final WiFiDirectDataPool wiFiDirectDataPool,
+                             final FougereDistance fougereDistance) {
         this.manager = manager;
         this.channel = channel;
 
@@ -69,8 +69,7 @@ public class ConnectionHandler {
 
         this.dataPool = dataPool;
         this.wiFiDirectDataPool = wiFiDirectDataPool;
-
-        this.passive = new Passive(this.dataPool, this.wiFiDirectDataPool);
+        this.fougereDistance = fougereDistance;
 
         HandlerThread handlerThread = new HandlerThread("ConnectionHandlerThread");
         handlerThread.start();
@@ -95,6 +94,7 @@ public class ConnectionHandler {
 
         this.intentFilter = new IntentFilter();
         this.intentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
+        this.intentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
     }
 
     public void connect(final WifiP2pDevice device) {
@@ -165,8 +165,10 @@ public class ConnectionHandler {
             String action = intent.getAction();
 
             if (WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION.equals(action)) {
-                NetworkInfo networkInfo = intent.getParcelableExtra(WifiP2pManager.EXTRA_NETWORK_INFO);
-                WifiP2pInfo wiFiP2pInfo = intent.getParcelableExtra(WifiP2pManager.EXTRA_WIFI_P2P_INFO);
+                NetworkInfo networkInfo =
+                        intent.getParcelableExtra(WifiP2pManager.EXTRA_NETWORK_INFO);
+                WifiP2pInfo wiFiP2pInfo =
+                        intent.getParcelableExtra(WifiP2pManager.EXTRA_WIFI_P2P_INFO);
 
                 Log.d(Fougere.TAG, "[ConnectionHandler] " + networkInfo);
                 Log.d(Fougere.TAG, "[ConnectionHandler] " + wiFiP2pInfo);
@@ -177,17 +179,21 @@ public class ConnectionHandler {
                     if (wiFiP2pInfo.isGroupOwner) {
                         ConnectionHandler.this.handler.post(ConnectionHandler.this.passive);
                     } else {
-                        ConnectionHandler.this.active = new Active(wiFiP2pInfo.groupOwnerAddress,
+                        ConnectionHandler.this.active = new Active(ConnectionHandler.this.me,
+                                wiFiP2pInfo.groupOwnerAddress,
                                 ConnectionHandler.this.dataPool,
-                                ConnectionHandler.this.wiFiDirectDataPool);
+                                ConnectionHandler.this.wiFiDirectDataPool,
+                                ConnectionHandler.this.fougereDistance);
                         ConnectionHandler.this.handler.postDelayed(ConnectionHandler.this.active,
                                 DELAY);
                     }
-                } /*else {
-                    if (NetworkInfo.DetailedState.FAILED.equals(networkInfo.getDetailedState())) {
-                        ConnectionHandler.this.disconnect();
-                    }
-                }*/
+                }
+            } else if (WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION.equals(action)) {
+                ConnectionHandler.this.me =
+                        intent.getParcelableExtra(WifiP2pManager.EXTRA_WIFI_P2P_DEVICE);
+                ConnectionHandler.this.passive = new Passive(ConnectionHandler.this.me,
+                        ConnectionHandler.this.dataPool, ConnectionHandler.this.wiFiDirectDataPool,
+                        ConnectionHandler.this.fougereDistance);
             }
         }
     }

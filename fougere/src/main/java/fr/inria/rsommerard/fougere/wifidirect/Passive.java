@@ -1,5 +1,6 @@
 package fr.inria.rsommerard.fougere.wifidirect;
 
+import android.net.wifi.p2p.WifiP2pDevice;
 import android.util.Log;
 
 import java.io.IOException;
@@ -9,9 +10,9 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import fr.inria.rsommerard.fougere.Fougere;
+import fr.inria.rsommerard.fougere.FougereDistance;
 import fr.inria.rsommerard.fougere.data.Data;
 import fr.inria.rsommerard.fougere.data.DataPool;
 import fr.inria.rsommerard.fougere.data.wifidirect.WiFiDirectData;
@@ -24,14 +25,20 @@ public class Passive implements Runnable {
 
     private final WiFiDirectDataPool wiFiDirectDataPool;
     private final DataPool dataPool;
+    private final WifiP2pDevice me;
+    private final FougereDistance fougereDistance;
     private ServerSocket serverSocket;
     private Socket socket;
     private ObjectInputStream input;
     private ObjectOutputStream output;
 
-    public Passive(final DataPool dataPool, final WiFiDirectDataPool wiFiDirectDataPool) {
+    public Passive(final WifiP2pDevice me, final DataPool dataPool,
+                   final WiFiDirectDataPool wiFiDirectDataPool,
+                   final FougereDistance fougereDistance) {
         this.wiFiDirectDataPool = wiFiDirectDataPool;
         this.dataPool = dataPool;
+        this.me = me;
+        this.fougereDistance = fougereDistance;
     }
 
     @Override
@@ -71,6 +78,20 @@ public class Passive implements Runnable {
 
         this.send(Protocol.HELLO);
 
+        String deviceAddress = this.receive();
+        this.send(Protocol.ACK);
+
+        if ( ! this.fougereDistance.containsUser(deviceAddress)) {
+            this.fougereDistance.addUser(deviceAddress);
+        }
+
+        this.send(me.deviceAddress);
+
+        if ( ! Protocol.ACK.equals(this.receive())) {
+            Log.e(Fougere.TAG, "[Active] " + Protocol.ACK + " not received");
+            return;
+        }
+
         this.send(Protocol.SEND);
 
         String json = this.receive();
@@ -87,11 +108,13 @@ public class Passive implements Runnable {
             return;
         }
 
-        List<WiFiDirectData> dataTemp = this.wiFiDirectDataPool.getAll();
+        List<WiFiDirectData> dataTemp = this.wiFiDirectDataPool.getAll(); // TODO: select data
         List<WiFiDirectData> dataToSend = new ArrayList<>();
 
         for (WiFiDirectData dt : dataTemp) {
-            dataToSend.add(WiFiDirectData.reset(dt));
+            WiFiDirectData dtr = WiFiDirectData.reset(dt);
+            dtr.setTtl(dtr.getTtl() - 1);
+            dataToSend.add(dtr);
         }
 
         this.send(WiFiDirectData.gsonify(dataToSend));
@@ -115,6 +138,8 @@ public class Passive implements Runnable {
         }
 
         Log.d(Fougere.TAG, "[Passive] Process done");
+
+        this.fougereDistance.updateDistance(deviceAddress);
 
         this.send(Protocol.OUT);
 

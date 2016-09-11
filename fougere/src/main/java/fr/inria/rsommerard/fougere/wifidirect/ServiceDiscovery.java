@@ -5,17 +5,15 @@ import android.net.wifi.p2p.WifiP2pManager;
 import android.net.wifi.p2p.WifiP2pManager.Channel;
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceInfo;
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceRequest;
-import android.os.Handler;
-import android.os.HandlerThread;
 import android.util.Log;
 
 import java.util.Map;
-import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import fr.inria.rsommerard.fougere.Fougere;
+import fr.inria.rsommerard.fougere.FougereDistance;
 
 /**
  * Created by Romain on 01/08/16.
@@ -29,6 +27,7 @@ public class ServiceDiscovery {
     private static final int DELAY = 11000;
     private final ConnectionHandler connectionHandler;
     private final ScheduledExecutorService executor;
+    private final FougereDistance fougereDistance;
 
     private WifiP2pDnsSdServiceInfo wiFiP2pDnsSdServiceInfo;
     private FougereActionListener addLocalServiceActionListener;
@@ -46,10 +45,12 @@ public class ServiceDiscovery {
     private final Runnable discover;
 
     public ServiceDiscovery(final WifiP2pManager manager, final Channel channel,
-                            final ConnectionHandler connectionHandler) {
+                            final ConnectionHandler connectionHandler,
+                            final FougereDistance fougereDistance) {
         this.manager = manager;
         this.channel = channel;
 
+        this.fougereDistance = fougereDistance;
         this.connectionHandler = connectionHandler;
 
         this.executor = Executors.newSingleThreadScheduledExecutor();
@@ -165,7 +166,13 @@ public class ServiceDiscovery {
                         " discovered");
 
                 if (srcDevice.status == WifiP2pDevice.AVAILABLE) {
-                    ServiceDiscovery.this.connectionHandler.connect(srcDevice);
+                    if ( ! ServiceDiscovery.this.fougereDistance.containsUser(srcDevice.deviceAddress)) {
+                        ServiceDiscovery.this.fougereDistance.addUser(srcDevice.deviceAddress);
+                    }
+
+                    if (ServiceDiscovery.this.fougereDistance.canSendTo(srcDevice.deviceAddress)) {
+                        ServiceDiscovery.this.connectionHandler.connect(srcDevice);
+                    }
                 }
             } else {
                 Log.d(Fougere.TAG, "[FougereDnsSdTxtRecordListener] DnsSdTxtRecord not valid");

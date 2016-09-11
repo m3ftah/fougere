@@ -33,15 +33,15 @@ public class Data {
 
     @Property
     @NotNull
-    private int ttl;
+    private int ttl; // Live value of the data
 
     @Property
     @NotNull
-    private int disseminate;
+    private int disseminate; // How many times a data need to be sended to different users
 
     @Property
     @NotNull
-    private int sent;
+    private int sent; // How many times the data was sended to different users
 
     @Generated(hash = 1933346554)
     public Data(Long id, @NotNull String identifier, @NotNull String content, int ttl,

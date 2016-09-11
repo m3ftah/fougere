@@ -1,15 +1,21 @@
 package fr.inria.rsommerard.fougere.social;
 
 import android.app.Activity;
-import android.support.v7.widget.LinearLayoutCompat;
+import android.util.Log;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
+import fr.inria.rsommerard.fougere.Fougere;
+import fr.inria.rsommerard.fougere.FougereDistance;
 import fr.inria.rsommerard.fougere.FougereModule;
 import fr.inria.rsommerard.fougere.data.Data;
 import fr.inria.rsommerard.fougere.data.social.SocialData;
 import fr.inria.rsommerard.fougere.data.social.SocialDataPool;
+import retrofit2.Call;
+import retrofit2.Retrofit;
 
 /**
  * Created by Romain on 15/08/2016.
@@ -18,12 +24,20 @@ public class Social implements FougereModule {
 
     public static final String NAME = "Social";
 
-    private final SocialDataPool socialDataPool;
-    private int ratio;
+    private static final String SERVER = "http://10.32.0.44:8080/";
 
-    public Social(final Activity activity) {
+    private final SocialDataPool socialDataPool;
+    private final FougereDistance fougereDistance;
+    private final SocialAPI api;
+    private int ratio;
+    private List<SocialUser> selUsers;
+
+    public Social(final Activity activity, final FougereDistance fougereDistance) {
         this.socialDataPool = new SocialDataPool(activity);
         this.ratio = 30;
+        this.fougereDistance = fougereDistance;
+
+        this.api = new Retrofit.Builder().baseUrl(SERVER).build().create(SocialAPI.class);
     }
 
     @Override
@@ -33,7 +47,29 @@ public class Social implements FougereModule {
 
     @Override
     public void start() {
-        // Nothing
+        List<SocialUser> users = null;
+
+        try {
+            users = this.api.listUsers().execute().body();
+        } catch (IOException e) {
+            e.printStackTrace();
+            Log.e(Fougere.TAG, "[Social] Cannot get the social user list");
+            return;
+        }
+
+        Log.d(Fougere.TAG, "[Social] Users: " + users.toString());
+
+        Random rand = new Random();
+        int nb = rand.nextInt(4);
+
+        this.selUsers = new ArrayList<>();
+        for (int i = 0; i < nb; i++) {
+            this.selUsers.add(users.get(rand.nextInt(users.size())));
+        }
+    }
+
+    public void disseminate() {
+        // send/recover data to/from server
     }
 
     @Override

@@ -7,8 +7,6 @@ import android.util.Log;
 import java.util.List;
 
 import fr.inria.rsommerard.fougere.Fougere;
-import fr.inria.rsommerard.fougere.data.contextual.DaoMaster;
-import fr.inria.rsommerard.fougere.data.contextual.DaoSession;
 
 /**
  * Created by Romain on 17/08/16.

@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import fr.inria.rsommerard.fougere.Fougere;
+import fr.inria.rsommerard.fougere.FougereDistance;
 import fr.inria.rsommerard.fougere.FougereModule;
 import fr.inria.rsommerard.fougere.data.Data;
 import fr.inria.rsommerard.fougere.data.DataPool;
@@ -34,7 +35,8 @@ public class WiFiDirect implements FougereModule {
     private final ConnectionHandler connectionHandler;
     private final WiFiDirectDataPool wiFiDirectDataPool;
 
-    public WiFiDirect(final Activity activity, final DataPool dataPool) {
+    public WiFiDirect(final Activity activity, final DataPool dataPool,
+                      final FougereDistance fougereDistance) {
         this.ratio = 60;
 
         this.manager = (WifiP2pManager) activity.getSystemService(Context.WIFI_P2P_SERVICE);
@@ -44,10 +46,10 @@ public class WiFiDirect implements FougereModule {
         this.wiFiDirectDataPool = new WiFiDirectDataPool(activity);
 
         this.connectionHandler = new ConnectionHandler(activity, this.manager, this.channel,
-                dataPool, this.wiFiDirectDataPool);
+                dataPool, this.wiFiDirectDataPool, fougereDistance);
 
         this.serviceDiscovery = new ServiceDiscovery(this.manager, this.channel,
-                this.connectionHandler);
+                this.connectionHandler, fougereDistance);
     }
 
     @Override

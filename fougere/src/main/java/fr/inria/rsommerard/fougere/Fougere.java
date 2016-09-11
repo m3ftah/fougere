@@ -13,18 +13,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 
-import fr.inria.rsommerard.fougere.contextual.Contextual;
 import fr.inria.rsommerard.fougere.data.Data;
 import fr.inria.rsommerard.fougere.data.DataPool;
 import fr.inria.rsommerard.fougere.data.DataProducer;
-import fr.inria.rsommerard.fougere.data.contextual.ContextualData;
-import fr.inria.rsommerard.fougere.data.social.SocialData;
-import fr.inria.rsommerard.fougere.data.wifidirect.WiFiDirectData;
-import fr.inria.rsommerard.fougere.social.Social;
-import fr.inria.rsommerard.fougere.wifidirect.Active;
 import fr.inria.rsommerard.fougere.wifidirect.WiFiDirect;
 
 /**
@@ -37,6 +30,7 @@ public class Fougere {
     private final DataPool dataPool;
     private final SecureRandom random;
     private final HashMap<String, FougereModule> modules;
+    private final FougereDistance fougereDistance;
 
     private boolean isStarted;
 
@@ -48,9 +42,10 @@ public class Fougere {
         this.dataPool = new DataPool(this.activity);
         this.modules = new HashMap<>();
 
-        this.initializeModules();
-
         this.random = new SecureRandom();
+        this.fougereDistance = new FougereDistance(this.random);
+
+        this.initializeModules();
 
         if (this.dataPool.getAll().size() == 0) {
             this.experimentationInit();
@@ -73,7 +68,7 @@ public class Fougere {
             if (WiFiDirect.NAME.equals(module.getName())) {
                 WifiManager manager = (WifiManager) this.activity.getSystemService(Context.WIFI_SERVICE);
                 if (manager.isWifiEnabled()) {
-                    //this.modules.get(WiFiDirect.NAME).start();
+                    this.modules.get(WiFiDirect.NAME).start();
                 }
             } else {
                 module.start();
@@ -82,14 +77,14 @@ public class Fougere {
     }
 
     private void initializeModules() {
-        WiFiDirect wiFiDirect = new WiFiDirect(this.activity, this.dataPool);
+        WiFiDirect wiFiDirect = new WiFiDirect(this.activity, this.dataPool, this.fougereDistance);
         this.modules.put(WiFiDirect.NAME, wiFiDirect);
 
-        Contextual contextual = new Contextual(this.activity);
-        this.modules.put(Contextual.NAME, contextual);
+        // Contextual contextual = new Contextual(this.activity, this.fougereDistance);
+        // this.modules.put(Contextual.NAME, contextual);
 
-        Social social = new Social(this.activity);
-        this.modules.put(Social.NAME, social);
+        // Social social = new Social(this.activity, this.fougereDistance);
+        // this.modules.put(Social.NAME, social);
     }
 
     public void stop() {
@@ -190,7 +185,7 @@ public class Fougere {
 
             if (action.equals(WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION)) {
                 if (intent.getBooleanExtra(WifiManager.EXTRA_SUPPLICANT_CONNECTED, false)){
-                    //Fougere.this.modules.get(WiFiDirect.NAME).start();
+                    Fougere.this.modules.get(WiFiDirect.NAME).start();
                 } else {
                     Fougere.this.modules.get(WiFiDirect.NAME).stop();
                 }

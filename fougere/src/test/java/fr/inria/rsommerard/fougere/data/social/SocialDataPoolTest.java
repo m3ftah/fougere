@@ -1,6 +1,7 @@
 package fr.inria.rsommerard.fougere.data.social;
 
 import android.os.Build;
+import android.support.compat.BuildConfig;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -9,8 +10,6 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
-
-import fr.inria.rsommerard.fougere.BuildConfig;
 
 /**
  * Created by Romain on 15/08/2016.
