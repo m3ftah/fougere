@@ -163,6 +163,7 @@ public class ConnectionHandler {
         @Override
         public void onReceive(final Context context, final Intent intent) {
             String action = intent.getAction();
+            Log.d(Fougere.TAG, "[ConnectionHandler] " + action);
 
             if (WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION.equals(action)) {
                 NetworkInfo networkInfo =
