@@ -79,12 +79,6 @@ public class Fougere {
     private void initializeModules() {
         WiFiDirect wiFiDirect = new WiFiDirect(this.activity, this.dataPool, this.fougereDistance);
         this.modules.put(WiFiDirect.NAME, wiFiDirect);
-
-        // Contextual contextual = new Contextual(this.activity, this.fougereDistance);
-        // this.modules.put(Contextual.NAME, contextual);
-
-        // Social social = new Social(this.activity, this.fougereDistance);
-        // this.modules.put(Social.NAME, social);
     }
 
     public void stop() {
