@@ -37,7 +37,7 @@ public class WiFiDirect implements FougereModule {
 
     public WiFiDirect(final Activity activity, final DataPool dataPool,
                       final FougereDistance fougereDistance) {
-        this.ratio = 60;
+        this.ratio = 100;
 
         this.manager = (WifiP2pManager) activity.getSystemService(Context.WIFI_P2P_SERVICE);
         this.channel = this.manager.initialize(activity, activity.getMainLooper(),

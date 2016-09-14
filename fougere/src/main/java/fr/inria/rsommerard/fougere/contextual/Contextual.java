@@ -36,7 +36,7 @@ public class Contextual implements FougereModule {
 
     public Contextual(final Activity activity, final FougereDistance fougereDistance) {
         this.contextualDataPool = new ContextualDataPool(activity);
-        this.ratio = 10;
+        this.ratio = 100;
         this.fougereDistance = fougereDistance;
 
         this.api = new Retrofit.Builder().baseUrl(SERVER).build().create(ContextualAPI.class);

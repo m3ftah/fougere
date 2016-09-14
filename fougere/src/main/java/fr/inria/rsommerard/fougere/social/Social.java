@@ -34,7 +34,7 @@ public class Social implements FougereModule {
 
     public Social(final Activity activity, final FougereDistance fougereDistance) {
         this.socialDataPool = new SocialDataPool(activity);
-        this.ratio = 30;
+        this.ratio = 100;
         this.fougereDistance = fougereDistance;
 
         this.api = new Retrofit.Builder().baseUrl(SERVER).build().create(SocialAPI.class);

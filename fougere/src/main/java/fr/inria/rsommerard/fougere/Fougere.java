@@ -78,6 +78,7 @@ public class Fougere {
 
     private void initializeModules() {
         WiFiDirect wiFiDirect = new WiFiDirect(this.activity, this.dataPool, this.fougereDistance);
+        //wiFiDirect.setRatio(60);
         this.modules.put(WiFiDirect.NAME, wiFiDirect);
 
         // Contextual contextual = new Contextual(this.activity, this.fougereDistance);
