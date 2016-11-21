@@ -10,6 +10,6 @@ import retrofit2.Call;
 import retrofit2.http.GET;
 
 public interface SocialAPI {
-    @GET
-    Call<List<SocialUser>> listUsers();
+    @GET()
+    Call<List<SocialUser>> links();
 }

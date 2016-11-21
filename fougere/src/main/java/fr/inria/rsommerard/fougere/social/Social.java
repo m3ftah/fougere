@@ -24,7 +24,7 @@ public class Social implements FougereModule {
 
     public static final String NAME = "Social";
 
-    private static final String SERVER = "http://10.32.0.44:8080/";
+    private static final String SERVER = "http://10.32.0.41:28017/";
 
     private final SocialDataPool socialDataPool;
     private final FougereDistance fougereDistance;
