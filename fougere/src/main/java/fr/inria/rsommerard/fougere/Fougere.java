@@ -31,6 +31,8 @@ public class Fougere {
     private final SecureRandom random;
     private final HashMap<String, FougereModule> modules;
     private final FougereDistance fougereDistance;
+    private IntentFilter intentFilter;
+    private WiFiReceiver wiFiReceiver;
 
     private boolean isStarted;
 
@@ -51,11 +53,11 @@ public class Fougere {
             this.experimentationInit();
         }
 
-        WiFiReceiver wiFiReceiver = new WiFiReceiver();
+        this.wiFiReceiver = new WiFiReceiver();
 
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION);
-        this.activity.registerReceiver(wiFiReceiver, intentFilter);
+        this.intentFilter = new IntentFilter();
+        this.intentFilter.addAction(WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION);
+
     }
 
     public void start() {
@@ -63,6 +65,8 @@ public class Fougere {
 
         this.regroupData();
         this.allocateData();
+
+        this.activity.registerReceiver(wiFiReceiver, intentFilter);
 
         for (FougereModule module : this.modules.values()) {
             if (WiFiDirect.NAME.equals(module.getName())) {
@@ -88,6 +92,7 @@ public class Fougere {
         for (FougereModule module : this.modules.values()) {
             module.stop();
         }
+        this.activity.unregisterReceiver(this.wiFiReceiver);
     }
 
     // TODO: to delete

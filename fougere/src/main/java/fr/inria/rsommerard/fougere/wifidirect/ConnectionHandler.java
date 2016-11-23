@@ -108,6 +108,7 @@ public class ConnectionHandler {
 
         this.state = ConnectionState.CONNECTING;
 
+        if (this.executor.isShutdown()) this.executor = Executors.newSingleThreadScheduledExecutor();
         this.executor.schedule(this.timeout, CONNECTION_TIMEOUT, TimeUnit.MILLISECONDS);
 
         WifiP2pConfig wifiP2pConfig = new WifiP2pConfig();
