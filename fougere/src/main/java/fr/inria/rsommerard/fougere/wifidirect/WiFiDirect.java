@@ -119,13 +119,13 @@ public class WiFiDirect implements FougereModule {
 
             Log.d(Fougere.TAG, "[WiFiDirect] Groups are successfully removed");
         } catch (NoSuchMethodException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
             Log.e(Fougere.TAG, "[WiFiDirect] Failed to deletePersistentGroup: method NOT found");
         } catch (InvocationTargetException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
             Log.e(Fougere.TAG, "[WiFiDirect] Failed to deletePersistentGroup");
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
             Log.e(Fougere.TAG, "[WiFiDirect] Failed to deletePersistentGroup");
         }
     }
