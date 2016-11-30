@@ -46,17 +46,22 @@ public class Passive implements Runnable {
         Log.d(Fougere.TAG, "[Passive] Started");
 
         try {
-            this.serverSocket = new ServerSocket(54412);
+            this.serverSocket = new ServerSocket(11131);
+            Log.e(Fougere.TAG, "[Passive] ServerSocket instance created");
         } catch (IOException e) {
             Log.e(Fougere.TAG, "[Passive] Error on ServerSocket initialization");
         }
 
         if (this.serverSocket == null) {
+            Log.e(Fougere.TAG, "[Passive] ServerSocket is null");
             return;
         }
 
+            Log.e(Fougere.TAG, "[Passive] ServerSocket is not null");
+
         try {
             this.socket = this.serverSocket.accept();
+            Log.e(Fougere.TAG, "[Passive] ServerSocket in accept mode");
             // Warning: Order is important! First create output for the header!
             this.output = new ObjectOutputStream(this.socket.getOutputStream());
             this.input = new ObjectInputStream(this.socket.getInputStream());

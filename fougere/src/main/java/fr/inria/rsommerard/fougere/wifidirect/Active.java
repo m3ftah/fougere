@@ -56,7 +56,7 @@ public class Active implements Runnable {
             this.socket = new Socket();
 
             try {
-                this.socket.connect(new InetSocketAddress(this.groupOwnerAddress, 54412), SOCKET_TIMEOUT);
+                this.socket.connect(new InetSocketAddress(this.groupOwnerAddress, 11131), SOCKET_TIMEOUT);
                 // Warning: Order is important! First create output for the header!
                 this.output = new ObjectOutputStream(this.socket.getOutputStream());
                 this.input = new ObjectInputStream(this.socket.getInputStream());

@@ -191,8 +191,16 @@ public class ConnectionHandler {
                     }
                 }
             } else if (WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION.equals(action)) {
-                ConnectionHandler.this.me =
-                        intent.getParcelableExtra(WifiP2pManager.EXTRA_WIFI_P2P_DEVICE);
+                Log.d(Fougere.TAG, "[ConnectionHandler] is " + action);
+                ConnectionHandler.this.me = new WifiP2pDevice();
+                ConnectionHandler.this.me.deviceAddress = intent.getStringExtra("wifiP2pDeviceIp");
+                ConnectionHandler.this.me.deviceName = intent.getStringExtra("wifiP2pDeviceName");
+
+                
+                Log.d(Fougere.TAG, "[ConnectionHandler] My address is : " + ConnectionHandler.this.me.deviceAddress);
+
+                Log.d(Fougere.TAG, "[ConnectionHandler] My Name is : " + ConnectionHandler.this.me.deviceName);
+
                 ConnectionHandler.this.passive = new Passive(ConnectionHandler.this.me,
                         ConnectionHandler.this.dataPool, ConnectionHandler.this.wiFiDirectDataPool,
                         ConnectionHandler.this.fougereDistance);
