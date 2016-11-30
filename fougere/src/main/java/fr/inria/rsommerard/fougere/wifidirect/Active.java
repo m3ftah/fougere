@@ -165,10 +165,12 @@ public class Active implements Runnable {
 
     private void release() {
         Log.d(Fougere.TAG, "[Active] Release resources");
-
-        this.closeInputStream();
-        this.closeOutputStream();
-        this.closeSocket();
+        if (this.input != null)
+            this.closeInputStream();
+        if (this.output != null)
+            this.closeOutputStream();
+        if (this.socket != null)
+            this.closeSocket();
     }
 
     private void closeInputStream() {
