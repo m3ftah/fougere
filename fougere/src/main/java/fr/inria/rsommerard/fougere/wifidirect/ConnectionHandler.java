@@ -30,8 +30,8 @@ import fr.inria.rsommerard.fougere.data.wifidirect.WiFiDirectDataPool;
  */
 public class ConnectionHandler {
 
-    private static final int CONNECTION_TIMEOUT = 60000;
-    private static final int DELAY = 3000;
+    private static final int CONNECTION_TIMEOUT = 1800;//600
+    private static final int DELAY = 1;//30
 
     private final WifiP2pManager manager;
     private final Channel channel;
@@ -199,6 +199,9 @@ public class ConnectionHandler {
                     ConnectionHandler.this.me.deviceAddress = intent.getStringExtra("wifiP2pDeviceIp");
                     ConnectionHandler.this.me.deviceName = intent.getStringExtra("wifiP2pDeviceName");
                 }
+                new DeviceInfo();
+                DeviceInfo.deviceName = ConnectionHandler.this.me.deviceName;
+                DeviceInfo.deviceAddress = ConnectionHandler.this.me.deviceAddress;
                 Log.d(Fougere.TAG, "[ConnectionHandler] My address is : " + ConnectionHandler.this.me.deviceAddress);
                 Log.d(Fougere.TAG, "[ConnectionHandler] My Name is : " + ConnectionHandler.this.me.deviceName);
                 ConnectionHandler.this.passive = new Passive(ConnectionHandler.this.me,

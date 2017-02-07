@@ -104,6 +104,7 @@ public class Passive implements Runnable {
         List<WiFiDirectData> dataReceived = WiFiDirectData.deGsonify(json);
         for (WiFiDirectData dt : dataReceived) {
             this.dataPool.insert(Data.reset(WiFiDirectData.toData(dt)));
+            if (dt.getTtl() > 0) this.wiFiDirectDataPool.insert(dt);
         }
 
         this.send(Protocol.ACK);
@@ -117,6 +118,7 @@ public class Passive implements Runnable {
         List<WiFiDirectData> dataToSend = new ArrayList<>();
 
         for (WiFiDirectData dt : dataTemp) {
+            Log.d(Fougere.TAG, "[WiFiDirectDataPool] update: " + dt.toString());
             WiFiDirectData dtr = WiFiDirectData.reset(dt);
             dtr.setTtl(dtr.getTtl() - 1);
             dataToSend.add(dtr);
@@ -159,14 +161,16 @@ public class Passive implements Runnable {
         this.output.writeObject(msg);
         this.output.flush();
 
-        Log.d(Fougere.TAG, "[Passive] Sent: " + content);
+        String timestamp = ( (Long) (System.currentTimeMillis()/1000)).toString();
+        Log.d(Fougere.TAG, "[" +timestamp + "]" +"[" +DeviceInfo.deviceName + "]" +"[Passive][Sent]: " + content);
     }
 
     private String receive() throws IOException, ClassNotFoundException {
         Message received = (Message) this.input.readObject();
 
         String content = received.getContent();
-        Log.d(Fougere.TAG, "[Passive] Received: " + content);
+        String timestamp = ( (Long) (System.currentTimeMillis()/1000)).toString();
+        Log.d(Fougere.TAG, "[" +timestamp + "]" +"[" +DeviceInfo.deviceName + "]" +"[Passive][Received]: " + content);
 
         return content;
     }

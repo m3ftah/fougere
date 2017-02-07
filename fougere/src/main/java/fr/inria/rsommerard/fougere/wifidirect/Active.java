@@ -24,8 +24,8 @@ import fr.inria.rsommerard.fougere.data.wifidirect.WiFiDirectDataPool;
  */
 public class Active implements Runnable {
 
-    private static final int SOCKET_TIMEOUT = 7000;
-    private static final int NB_ATTEMPTS = 5;
+    private static final int SOCKET_TIMEOUT = 70;
+    private static final int NB_ATTEMPTS = 1;
 
     private final InetAddress groupOwnerAddress;
     private final WiFiDirectDataPool wiFiDirectDataPool;
@@ -115,7 +115,9 @@ public class Active implements Runnable {
         List<WiFiDirectData> dataToSend = new ArrayList<>();
 
         for (WiFiDirectData dt : dataTemp) {
+            Log.d(Fougere.TAG, "[WiFiDirectDataPool] update: " + dt.toString());
             WiFiDirectData dtr = WiFiDirectData.reset(dt);
+
             dtr.setTtl(dtr.getTtl() - 1);
             dataToSend.add(dtr);
         }
@@ -137,6 +139,7 @@ public class Active implements Runnable {
 
             dt.setSent(newSent);
 
+
             this.wiFiDirectDataPool.update(dt);
         }
 
@@ -147,6 +150,7 @@ public class Active implements Runnable {
         List<WiFiDirectData> dataReceived = WiFiDirectData.deGsonify(json);
         for (WiFiDirectData dt : dataReceived) {
             this.dataPool.insert(Data.reset(WiFiDirectData.toData(dt)));
+            if (dt.getTtl() > 0) this.wiFiDirectDataPool.insert(dt);
         }
 
         this.send(Protocol.ACK);
@@ -202,15 +206,16 @@ public class Active implements Runnable {
 
         this.output.writeObject(msg);
         this.output.flush();
-
-        Log.d(Fougere.TAG, "[Active] Sent: " + content);
+        String timestamp = ( (Long) (System.currentTimeMillis()/1000)).toString();
+        Log.d(Fougere.TAG, "[" +timestamp + "]" +"[" +DeviceInfo.deviceName + "]" +"[Active][Sent]: " + content);
     }
 
     private String receive() throws IOException, ClassNotFoundException {
         Message received = (Message) this.input.readObject();
 
         String content = received.getContent();
-        Log.d(Fougere.TAG, "[Active] Received: " + content);
+        String timestamp = ( (Long) (System.currentTimeMillis()/1000)).toString();
+        Log.d(Fougere.TAG, "[" +timestamp + "]" +"[" +DeviceInfo.deviceName + "]" +"[Active][Received]: " + content);
 
         return content;
     }

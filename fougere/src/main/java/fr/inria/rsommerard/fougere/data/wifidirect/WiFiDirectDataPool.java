@@ -65,7 +65,6 @@ public class WiFiDirectDataPool {
             return;
         }
 
-        Log.d(Fougere.TAG, "[WiFiDirectDataPool] Update: " + found.toString());
         Log.d(Fougere.TAG, "[WiFiDirectDataPool] To: " + data.toString());
 
         this.wiFiDirectDataDao.update(data);

@@ -21,7 +21,7 @@ public class DataProducer {
 
     public static Data produce(String key) {
         int ttl = 3;
-        int disseminate = 2;
+        int disseminate = 4;
         int sent = 0;
 
         Data data = new Data(null, UUID.randomUUID().toString(), "#" + key + "#", ttl, disseminate,

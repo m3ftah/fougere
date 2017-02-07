@@ -23,8 +23,8 @@ public class ServiceDiscovery {
     private static final String SERVICE_NAME = "_fougere";
     private static final String SERVICE_TYPE = "_tcp";
 
-    private static final int DISCOVERY_INTERVAL = 180000; //17000;
-    private static final int DELAY = 11000;
+    private static final int DISCOVERY_INTERVAL = 18000; //180000;//17000
+    private static final int DELAY = 1100;//11000
     private final ConnectionHandler connectionHandler;
     private final ScheduledExecutorService executor;
     private final FougereDistance fougereDistance;
