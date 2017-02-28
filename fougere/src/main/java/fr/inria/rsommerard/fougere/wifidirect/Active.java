@@ -1,5 +1,9 @@
 package fr.inria.rsommerard.fougere.wifidirect;
 
+import android.content.Context;
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationManager;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.util.Log;
 
@@ -120,6 +124,8 @@ public class Active implements Runnable {
 
             dtr.setTtl(dtr.getTtl() - 1);
             dataToSend.add(dtr);
+            String timestamp = ( (Long) (System.currentTimeMillis()/1000)).toString();
+            Log.d(Fougere.TAG, "[" +timestamp + "]" + "[" + getlocation() + "]" + "[" +DeviceInfo.deviceName + "]" +"[Active][Sent]: " + dt.toString());
         }
 
         this.send(WiFiDirectData.gsonify(dataToSend));
@@ -149,8 +155,12 @@ public class Active implements Runnable {
 
         List<WiFiDirectData> dataReceived = WiFiDirectData.deGsonify(json);
         for (WiFiDirectData dt : dataReceived) {
+            String timestamp = ( (Long) (System.currentTimeMillis()/1000)).toString();
+            Log.d(Fougere.TAG, "[" +timestamp + "]" + "[" + getlocation() + "]" + "[" +DeviceInfo.deviceName + "]" +"[Active][Received]: " + dt.toString());
             this.dataPool.insert(Data.reset(WiFiDirectData.toData(dt)));
+            Fougere.fougereListener.onDataReceived(WiFiDirectData.toData(dt));
             if (dt.getTtl() > 0) this.wiFiDirectDataPool.insert(dt);
+
         }
 
         this.send(Protocol.ACK);
@@ -200,14 +210,22 @@ public class Active implements Runnable {
             // Nothing
         }
     }
-
+    private String getlocation(){
+        LocationManager locationManager = (LocationManager) Fougere.activity.getSystemService(Context.LOCATION_SERVICE);
+        String provider = locationManager.getBestProvider(new Criteria(), true);
+        Location location = locationManager.getLastKnownLocation(provider);
+        if (location != null)
+            return  location.getLatitude() + " " + location.getLongitude();
+        else return "0 0";
+    }
     private void send(final String content) throws IOException {
+        getlocation();
         Message msg = new Message(content);
 
         this.output.writeObject(msg);
         this.output.flush();
         String timestamp = ( (Long) (System.currentTimeMillis()/1000)).toString();
-        Log.d(Fougere.TAG, "[" +timestamp + "]" +"[" +DeviceInfo.deviceName + "]" +"[Active][Sent]: " + content);
+        Log.d(Fougere.TAG, "[" +timestamp + "]" + "[" +getlocation() + "]" + "[" +DeviceInfo.deviceName + "]" +"[Active] Sent: " + content);
     }
 
     private String receive() throws IOException, ClassNotFoundException {
@@ -215,7 +233,7 @@ public class Active implements Runnable {
 
         String content = received.getContent();
         String timestamp = ( (Long) (System.currentTimeMillis()/1000)).toString();
-        Log.d(Fougere.TAG, "[" +timestamp + "]" +"[" +DeviceInfo.deviceName + "]" +"[Active][Received]: " + content);
+        Log.d(Fougere.TAG,  "[" +timestamp + "]" + "[" +getlocation() + "]" + "[" +DeviceInfo.deviceName + "]" +"[Active] Received : " + content);
 
         return content;
     }

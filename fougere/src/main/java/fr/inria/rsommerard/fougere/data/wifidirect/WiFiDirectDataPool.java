@@ -10,6 +10,7 @@ import fr.inria.rsommerard.fougere.Fougere;
 import fr.inria.rsommerard.fougere.data.DaoMaster;
 import fr.inria.rsommerard.fougere.data.DaoSession;
 import fr.inria.rsommerard.fougere.data.WiFiDirectDataDao;
+import fr.inria.rsommerard.fougere.wifidirect.DeviceInfo;
 
 /**
  * Created by Romain on 14/08/2016.
@@ -45,7 +46,8 @@ public class WiFiDirectDataPool {
             return;
         }
 
-        Log.d(Fougere.TAG, "[WiFiDirectDataPool] Insert: " + data.toString());
+        String timestamp = ( (Long) (System.currentTimeMillis()/1000)).toString();
+        Log.d(Fougere.TAG, "[" +timestamp + "]" + "[" + DeviceInfo.deviceName + "]" + "[WiFiDirectDataPool][Insert]: " + data.toString());
 
         this.wiFiDirectDataDao.insert(data);
     }

@@ -41,7 +41,7 @@ public class Data {
 
     @Property
     @NotNull
-    private int sent; // How many times the data was sended to different users
+    private int sent; // How many times the data had been sent to different users
 
     @Generated(hash = 1933346554)
     public Data(Long id, @NotNull String identifier, @NotNull String content, int ttl,
@@ -85,7 +85,7 @@ public class Data {
     @Override
     public String toString() {
         return "{\"id\":\"" + this.id + "\",\"identifier\":\"" + this.identifier +
-                "\",\"content\":\"" + this.content + "\",\"ttl\":\"" + this.ttl +
+                "\",\"content\":" + this.content + ",\"ttl\":\"" + this.ttl +
                 "\",\"disseminate\":\"" + this.disseminate + "\",\"sent\":\"" + this.sent + "\"}";
     }
 

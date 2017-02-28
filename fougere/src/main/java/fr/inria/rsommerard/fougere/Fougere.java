@@ -31,15 +31,18 @@ public class Fougere {
     private final SecureRandom random;
     private final HashMap<String, FougereModule> modules;
     private final FougereDistance fougereDistance;
+    public static FougereListener fougereListener;
     private IntentFilter intentFilter;
     private WiFiReceiver wiFiReceiver;
+    private WiFiDirect wiFiDirect;
 
     private boolean isStarted;
 
-    private final Activity activity;
+    public static Activity activity;
 
-    public Fougere(final Activity activity) {
-        this.activity = activity;
+    public Fougere(final Activity activity, FougereListener fougereListener) {
+        Fougere.activity = activity;
+        Fougere.fougereListener = fougereListener;
 
         this.dataPool = new DataPool(this.activity);
         this.modules = new HashMap<>();
@@ -49,9 +52,9 @@ public class Fougere {
 
         this.initializeModules();
 
-        if (this.dataPool.getAll().size() == 0) {
+        /*if (this.dataPool.getAll().size() == 0) {
             this.experimentationInit();
-        }
+        }*/
 
         this.wiFiReceiver = new WiFiReceiver();
 
@@ -81,9 +84,9 @@ public class Fougere {
     }
 
     private void initializeModules() {
-        WiFiDirect wiFiDirect = new WiFiDirect(this.activity, this.dataPool, this.fougereDistance);
+        this.wiFiDirect = new WiFiDirect(this.activity, this.dataPool, this.fougereDistance);
         //wiFiDirect.setRatio(60);
-        this.modules.put(WiFiDirect.NAME, wiFiDirect);
+        this.modules.put(WiFiDirect.NAME, this.wiFiDirect);
     }
 
     public void stop() {
@@ -103,6 +106,9 @@ public class Fougere {
         for (int i = 0; i < 5; i++) {
             this.dataPool.insert(DataProducer.produce(Integer.toString(key)));
         }
+    }
+    public void sendData(String data){
+        this.wiFiDirect.addData(DataProducer.produce(data));
     }
 
     public void addModule(final FougereModule module) {
@@ -191,5 +197,8 @@ public class Fougere {
                 }
             }
         }
+    }
+    public interface FougereListener{
+        void onDataReceived(Data data);
     }
 }

@@ -98,7 +98,7 @@ public class WiFiDirectData {
     @Override
     public String toString() {
         return "{\"id\":\"" + this.id + "\",\"identifier\":\"" + this.identifier +
-                "\",\"content\":\"" + this.content + "\",\"ttl\":\"" + this.ttl +
+                "\",\"content\":" + this.content + ",\"ttl\":\"" + this.ttl +
                 "\",\"disseminate\":\"" + this.disseminate + "\",\"sent\":\"" + this.sent + "\"}";
     }
 
