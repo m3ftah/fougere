@@ -28,7 +28,7 @@ import fr.inria.rsommerard.fougere.data.wifidirect.WiFiDirectDataPool;
  */
 public class Active implements Runnable {
 
-    private static final int SOCKET_TIMEOUT = 70;
+    private static final int SOCKET_TIMEOUT = 1000;
     private static final int NB_ATTEMPTS = 1;
 
     private final InetAddress groupOwnerAddress;
