@@ -28,8 +28,8 @@ import fr.inria.rsommerard.fougere.data.wifidirect.WiFiDirectDataPool;
  */
 public class Active implements Runnable {
 
-    private static final int SOCKET_TIMEOUT = 1000;
-    private static final int NB_ATTEMPTS = 1;
+    private static final int SOCKET_TIMEOUT = 7000;
+    private static final int NB_ATTEMPTS = 5;
 
     private final InetAddress groupOwnerAddress;
     private final WiFiDirectDataPool wiFiDirectDataPool;
@@ -82,7 +82,7 @@ public class Active implements Runnable {
             this.process();
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
-            Log.e(Fougere.TAG, "[Active] KO");
+            Log.e(Fougere.TAG, "[Active] KO : " + e.getMessage());
         } finally {
             this.release();
         }

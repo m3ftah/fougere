@@ -17,7 +17,7 @@ public class MainActivity extends AppCompatActivity {
     private Location location;
     private float pingResult;
     private RestServer restServer;
-    private final int SENDING_TIMES = 30;
+    private final int SENDING_TIMES = 5;
     private final int[] sentTimes = {0};
     private final int PING_TIMES = 1;
 
@@ -57,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
             public void onLocationChanged(Location location) {
                 sentTimes[0]++;
                 Log.v(MainActivity.TAG,"onLocationChanged times : " + sentTimes[0]);
-                //if (sentTimes[0] > SENDING_TIMES) return;
+                if (sentTimes[0] > SENDING_TIMES) return;
                 MainActivity.this.location = location;
                 ping(PING_TIMES);
             }
@@ -75,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(MainActivity.TAG,"finished");
                 String timestamp = ( (Long) (System.currentTimeMillis()/1000)).toString();
                 MainActivity.this.fougere.sendData("{ping:"+MainActivity.this.pingResult + ", lon:" + MainActivity.this.location.getLongitude() + ", lat:" + MainActivity.this.location.getLatitude() + ", timestamp:" + timestamp + "}");
-                restServer.send(DeviceInfo.deviceName,MainActivity.this.pingResult,MainActivity.this.location.getLongitude(),MainActivity.this.location.getLatitude());
+                //restServer.send(DeviceInfo.deviceName,MainActivity.this.pingResult,MainActivity.this.location.getLongitude(),MainActivity.this.location.getLatitude());
             }
         });
     }
