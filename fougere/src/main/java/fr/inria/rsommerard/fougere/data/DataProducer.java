@@ -21,7 +21,7 @@ public class DataProducer {
     }
 
     public static Data produce(String key) {
-        int ttl = 3;
+        int ttl = 1;
         int disseminate = 4;
         int sent = 0;
 

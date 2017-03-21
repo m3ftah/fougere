@@ -30,11 +30,11 @@ public class FougereDistance {
         double draw = this.random.nextDouble();
         boolean canSend = draw < user.getDistance();
 
-        Log.d(Fougere.TAG, "[FougereDistance] Distance: " + Double.toString(user.getDistance()));
-        Log.d(Fougere.TAG, "[FougereDistance] Drawn: " + Double.toString(draw));
-        Log.d(Fougere.TAG, "[FougereDistance] Sending: " + Boolean.toString(canSend));
+        //Log.d(Fougere.TAG, "[FougereDistance] Distance: " + Double.toString(user.getDistance()));
+        //Log.d(Fougere.TAG, "[FougereDistance] Drawn: " + Double.toString(draw));
+        //Log.d(Fougere.TAG, "[FougereDistance] Sending: " + Boolean.toString(canSend));
 
-        return canSend;
+        return true;//return canSend;
     }
 
     public void updateDistance(final String identifier) {

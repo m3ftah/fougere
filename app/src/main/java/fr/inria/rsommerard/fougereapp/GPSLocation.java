@@ -32,7 +32,7 @@ public class GPSLocation {
             return false;
         }
         String provider = locationManager.getBestProvider(new Criteria(), true);
-        locationManager.requestLocationUpdates(provider, 5000, 100, new LocationListener() {
+        locationManager.requestLocationUpdates(provider, 36000, 100, new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
                 Log.v(MainActivity.TAG, "New GPS location: [lat: " + location.getLatitude() + ", lon: " + location.getLongitude() + "]");

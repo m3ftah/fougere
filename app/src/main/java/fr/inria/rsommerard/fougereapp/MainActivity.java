@@ -17,7 +17,7 @@ public class MainActivity extends AppCompatActivity {
     private Location location;
     private float pingResult;
     private RestServer restServer;
-    private final int SENDING_TIMES = 5;
+    private final int SENDING_TIMES = 300;
     private final int[] sentTimes = {0};
     private final int PING_TIMES = 1;
 
@@ -57,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
             public void onLocationChanged(Location location) {
                 sentTimes[0]++;
                 Log.v(MainActivity.TAG,"onLocationChanged times : " + sentTimes[0]);
-                if (sentTimes[0] > SENDING_TIMES) return;
+                //if (sentTimes[0] > SENDING_TIMES) return;
                 MainActivity.this.location = location;
                 ping(PING_TIMES);
             }
