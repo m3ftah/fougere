@@ -30,8 +30,8 @@ import fr.inria.rsommerard.fougere.data.wifidirect.WiFiDirectDataPool;
  */
 public class ConnectionHandler {
 
-    private static final int CONNECTION_TIMEOUT = 600;//600
-    private static final int DELAY = 30;//30
+    private static final int CONNECTION_TIMEOUT = 60000;//600
+    private static final int DELAY = 3000;//30
 
     private final WifiP2pManager manager;
     private final Channel channel;
