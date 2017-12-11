@@ -52,9 +52,10 @@ public class Fougere {
 
         this.initializeModules();
 
-        /*if (this.dataPool.getAll().size() == 0) {
+        if (this.dataPool.getAll().size() == 0) {
+            //TODO remove the experimentation
             this.experimentationInit();
-        }*/
+        }
 
         this.wiFiReceiver = new WiFiReceiver();
 

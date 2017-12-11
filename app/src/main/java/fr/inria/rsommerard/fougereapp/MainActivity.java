@@ -35,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         this.fougere.start();
+
     }
 
     private void initiateServer() {
@@ -73,8 +74,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void finished() {
                 Log.d(MainActivity.TAG,"finished");
+                java.util.Random r = new java.util.Random();
+                double longitude = MainActivity.this.location.getLongitude() + r.nextGaussian() * Math.sqrt(0.2);
+                double latitude = MainActivity.this.location.getLatitude()+ r.nextGaussian() * Math.sqrt(0.2);
                 String timestamp = ( (Long) (System.currentTimeMillis()/1000)).toString();
-                MainActivity.this.fougere.sendData("{ping:"+MainActivity.this.pingResult + ", lon:" + MainActivity.this.location.getLongitude() + ", lat:" + MainActivity.this.location.getLatitude() + ", timestamp:" + timestamp + "}");
+                MainActivity.this.fougere.sendData("{ping:"+MainActivity.this.pingResult +
+                        ", lon:" + MainActivity.this.location.getLongitude() + ", lat:" +
+                        MainActivity.this.location.getLatitude() + ", timestamp:" + timestamp + "}");
                 //restServer.send(DeviceInfo.deviceName,MainActivity.this.pingResult,MainActivity.this.location.getLongitude(),MainActivity.this.location.getLatitude());
             }
         });

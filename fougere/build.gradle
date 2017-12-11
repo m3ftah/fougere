@@ -3,7 +3,7 @@ apply plugin: 'org.greenrobot.greendao'
 
 android {
     compileSdkVersion 24
-    buildToolsVersion "24.0.2"
+    buildToolsVersion '26.0.2'
 
     defaultConfig {
         minSdkVersion 18
@@ -31,9 +31,6 @@ buildscript {
         mavenCentral()
         jcenter()
     }
-    dependencies {
-        classpath 'org.greenrobot:greendao-gradle-plugin:3.1.0'
-    }
 }
 
 dependencies {
@@ -46,7 +43,7 @@ dependencies {
     compile 'com.squareup.retrofit2:retrofit:2.1.0'
 
     compile 'com.google.code.gson:gson:2.7'
-    compile 'org.greenrobot:greendao:3.1.0'
+    compile 'org.greenrobot:greendao:3.2.0'
 
     testCompile "org.robolectric:robolectric:3.1.2"
 }
