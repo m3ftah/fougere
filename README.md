@@ -1,4 +1,4 @@
-# Fougere
+# Fougere [![License: CC BY-NC-SA 4.0](https://licensebuttons.net/l/by-nc-sa/4.0/80x15.png)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 
 Fougere is an Andoid library that provides a user-centric privacy control for data-intensive mobile apps.
 
